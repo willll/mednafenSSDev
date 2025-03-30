@@ -134,6 +134,7 @@ am__dirstamp = $(am__leading_dot)dirstamp
 am_libss_a_OBJECTS = db.$(OBJEXT) stvio.$(OBJEXT) ak93c45.$(OBJEXT) \
 	cdb.$(OBJEXT) sound.$(OBJEXT) cart.$(OBJEXT) \
 	cart/backup.$(OBJEXT) cart/cs1ram.$(OBJEXT) \
+	cart/debug.$(OBJEXT) \
 	cart/bootrom.$(OBJEXT) cart/extram.$(OBJEXT) \
 	cart/rom.$(OBJEXT) cart/ar4mp.$(OBJEXT) cart/stv.$(OBJEXT) \
 	ss.$(OBJEXT) scu_dsp_gen.$(OBJEXT) scu_dsp_mvi.$(OBJEXT) \

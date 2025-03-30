@@ -29,6 +29,7 @@
 #include "cart/cs1ram.h"
 #include "cart/bootrom.h"
 #include "cart/extram.h"
+#include "cart/debug.h"
 //#include "cart/nlmodem.h"
 #include "cart/rom.h"
 #include "cart/ar4mp.h"
@@ -178,6 +179,10 @@ void CART_Init(const int cart_type, Stream* rom_stream, GameFile* gf, const STVG
 
   case CART_BOOTROM:
 	CART_BootROM_Init(&Cart, rom_stream);
+	break;
+
+  case CART_MDFN_DEBUG:
+	CART_Debug_Init(&Cart, rom_stream);
 	break;
 
 //  case CART_NLMODEM:

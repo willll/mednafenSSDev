@@ -1335,7 +1335,7 @@ static void MDFN_COLD InitCommon(unsigned cpucache_emumode, unsigned horrible_ha
    { CART_CS1RAM_16M, _("16MiB CS1 RAM"), nullptr },
    { CART_NLMODEM, _("Netlink Modem"), nullptr },
    { CART_BOOTROM, _("Bootable ROM"), nullptr }, 
-
+   { CART_MDFN_DEBUG, _("Debug Cart"), nullptr },
    { CART_STV, _("ST-V"), nullptr },
   };
   const char* cn = _("Unknown");
@@ -1716,7 +1716,8 @@ static MDFN_COLD void Load(GameFile* gf)
     LoadDBGCD(dbg_cdpath);
    //
    //
-   InitCommon(CPUCACHE_EMUMODE_FULL, HORRIBLEHACK_VDP1RWDRAWSLOWDOWN, CART_BOOTROM, region, gf->stream, nullptr);
+   //InitCommon(CPUCACHE_EMUMODE_FULL, HORRIBLEHACK_VDP1RWDRAWSLOWDOWN, CART_BOOTROM, region, gf->stream, nullptr);
+   InitCommon(CPUCACHE_EMUMODE_FULL, HORRIBLEHACK_VDP1RWDRAWSLOWDOWN, CART_MDFN_DEBUG, region, gf->stream, nullptr);
   }
   else
    throw MDFN_Error(0, _("File unrecognized by \"%s\" module."), MDFNGameInfo->shortname);
@@ -2330,6 +2331,7 @@ static const MDFNSetting_EnumList RTCLang_List[] =
  { "extram4", CART_EXTRAM_4M, gettext_noop("4MiB Extended RAM") },					\
  { "cs1ram16", CART_CS1RAM_16M, gettext_noop("16MiB RAM mapped in A-bus CS1") },			\
  { "ar4mp", CART_AR4MP, NULL }, /* Undocumented, unfinished. gettext_noop("Action Replay 4M Plus") },*/	\
+ { "debug", CART_MDFN_DEBUG, gettext_noop("Mednafen Debug")	}, \
  /* { "nlmodem", CART_NLMODEM, gettext_noop("NetLink Modem") }, */
 
 static const MDFNSetting_EnumList Cart_List[] =

@@ -212,6 +212,7 @@ src/ss/cdb.cpp
 src/ss/ssf.cpp
 src/ss/vdp2_render.cpp
 src/ss/cart/backup.cpp
+src/ss/cart/debug.cpp
 src/ss/cart/rom.cpp
 src/ss/cart/extram.cpp
 src/ss/cart/cs1ram.cpp
