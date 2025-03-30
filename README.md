@@ -1,18 +1,27 @@
 # mednafenSSDev
-Managed Mednafen Git repo with relevant fixes in support of the Sega Saturn (Developer) Community.
 
-Inspired from https://github.com/pce-devel/mednafenPceDev
+A managed Mednafen Git repository with relevant fixes to support the Sega Saturn Developer Community.
 
-# How to build :
-configure --enable-dev-build --enable-debugger && make
+Inspired by [mednafenPceDev](https://github.com/pce-devel/mednafenPceDev).
 
-# How to configure mednafen.cfg
+## How to Build
 
+Run the following commands:
+
+```bash
+./configure --enable-dev-build --enable-debugger
+make
 ```
-;Expansion cart.
+
+## How to Configure `mednafen.cfg`
+
+To enable the expansion cart, add the following line to your `mednafen.cfg` file:
+
+```ini
+; Expansion cart
 ss.cart debug
 ```
 
-# How to use in your code
+## How to Use in Your Code
 
-... TODO !! ...
+... TODO: Add usage instructions ...
