@@ -8,7 +8,11 @@ configure --enable-dev-build --enable-debugger && make
 
 # How to configure mednafen.cfg
 
+```
 ;Expansion cart.
 ss.cart debug
+```
 
-#
+# How to use in your code
+
+... TODO !! ...
