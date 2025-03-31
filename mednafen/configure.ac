@@ -321,17 +321,17 @@ AM_CONDITIONAL(NEED_HUC6270_EMU, false)
 AM_CONDITIONAL(NEED_ARCADE_CARD_EMU, false)
 
 AC_ARG_ENABLE(apple2,
- AC_HELP_STRING([--enable-apple2], [build with Apple II+ emulation [[default=yes]]]),
-                  , enable_apple2=yes)
+ AC_HELP_STRING([--enable-apple2], [build with Apple II+ emulation [[default=no]]]),
+                  , enable_apple2=no)
 
 if test x$enable_apple2 = xyes; then
                 AC_DEFINE([WANT_APPLE2_EMU], [1], [Define if we are compiling with Apple II+ emulation.])
-		AM_CONDITIONAL(WANT_APPLE2_EMU, true)
+		AM_CONDITIONAL(WANT_APPLE2_EMU, false)
 fi
 
 AC_ARG_ENABLE(gb,
- AC_HELP_STRING([--enable-gb], [build with GameBoy emulation [[default=yes]]]),
-                  , enable_gb=yes)
+ AC_HELP_STRING([--enable-gb], [build with GameBoy emulation [[default=no]]]),
+                  , enable_gb=no)
 
 if test x$enable_gb = xyes; then
                 AC_DEFINE([WANT_GB_EMU], [1], [Define if we are compiling with GB emulation.])
@@ -341,8 +341,8 @@ if test x$enable_gb = xyes; then
 fi
 
 AC_ARG_ENABLE(gba,
- AC_HELP_STRING([--enable-gba], [build with GameBoy Advance emulation [[default=yes]]]),
-                  , enable_gba=yes)
+ AC_HELP_STRING([--enable-gba], [build with GameBoy Advance emulation [[default=no]]]),
+                  , enable_gba=no)
 
 if test x$enable_gba = xyes; then
                 AC_DEFINE([WANT_GBA_EMU], [1], [Define if we are compiling with GBA emulation.])
@@ -352,8 +352,8 @@ if test x$enable_gba = xyes; then
 fi
 
 AC_ARG_ENABLE(lynx,
- AC_HELP_STRING([--enable-lynx], [build with Atari Lynx emulation [[default=yes]]]),
-                  , enable_lynx=yes)
+ AC_HELP_STRING([--enable-lynx], [build with Atari Lynx emulation [[default=no]]]),
+                  , enable_lynx=no)
 
 if test x$enable_lynx = xyes; then
                 AC_DEFINE([WANT_LYNX_EMU], [1], [Define if we are compiling with Lynx emulation.])
@@ -362,8 +362,8 @@ if test x$enable_lynx = xyes; then
 fi
 
 AC_ARG_ENABLE(md,
- AC_HELP_STRING([--enable-md], [build with Sega Genesis/MegaDrive emulation [[default=yes]]]),
-                  , enable_md=yes)
+ AC_HELP_STRING([--enable-md], [build with Sega Genesis/MegaDrive emulation [[default=no]]]),
+                  , enable_md=no)
 
 if test x$enable_md = xyes; then
                 AC_DEFINE([WANT_MD_EMU], [1], [Define if we are compiling with Sega Genesis/MegaDrive emulation.])
@@ -376,8 +376,8 @@ if test x$enable_md = xyes; then
 fi
 
 AC_ARG_ENABLE(nes,
- AC_HELP_STRING([--enable-nes], [build with Nintendo Entertainment System emulation [[default=yes]]]),
-                  , enable_nes=yes)
+ AC_HELP_STRING([--enable-nes], [build with Nintendo Entertainment System emulation [[default=no]]]),
+                  , enable_nes=no)
 
 if test x$enable_nes = xyes; then
                 AC_DEFINE([WANT_NES_EMU], [1], [Define if we are compiling with NES emulation.])
@@ -385,8 +385,8 @@ if test x$enable_nes = xyes; then
 fi
 
 #AC_ARG_ENABLE(nes_new,
-# AC_HELP_STRING([--enable-nes-new], [build with experimental, alternate new(ish) NES emulation [[default=yes]]]),
-#                  , enable_nes_new=yes)
+# AC_HELP_STRING([--enable-nes-new], [build with experimental, alternate new(ish) NES emulation [[default=no]]]),
+#                  , enable_nes_new=no)
 #
 #if test x$enable_nes_new = xyes; then
 #                AC_DEFINE([WANT_NES_NEW_EMU], [1], [Define if we are compiling with experimental, alternate new(ish) NES emulation.])
@@ -394,8 +394,8 @@ fi
 #fi
 
 AC_ARG_ENABLE(ngp,
- AC_HELP_STRING([--enable-ngp], [build with Neo Geo Pocket emulation [[default=yes]]]),
-                  , enable_ngp=yes)
+ AC_HELP_STRING([--enable-ngp], [build with Neo Geo Pocket emulation [[default=no]]]),
+                  , enable_ngp=no)
 
 if test x$enable_ngp = xyes; then
                 AC_DEFINE([WANT_NGP_EMU], [1], [Define if we are compiling with NGP emulation.])
@@ -405,8 +405,8 @@ if test x$enable_ngp = xyes; then
 fi
 
 AC_ARG_ENABLE(pce,
- AC_HELP_STRING([--enable-pce], [build with PC Engine(TurboGrafx 16) emulation [[default=yes]]]),
-                  , enable_pce=yes)
+ AC_HELP_STRING([--enable-pce], [build with PC Engine(TurboGrafx 16) emulation [[default=no]]]),
+                  , enable_pce=no)
 
 if test x$enable_pce = xyes; then
                 AC_DEFINE([WANT_PCE_EMU], [1], [Define if we are compiling with PCE emulation.])
@@ -417,8 +417,8 @@ if test x$enable_pce = xyes; then
 fi
 
 AC_ARG_ENABLE(pce-fast,
- AC_HELP_STRING([--enable-pce-fast], [build the separate, fast PC Engine(TurboGrafx 16) emulation [[default=yes]]]),
-                  , enable_pce_fast=yes)
+ AC_HELP_STRING([--enable-pce-fast], [build the separate, fast PC Engine(TurboGrafx 16) emulation [[default=no]]]),
+                  , enable_pce_fast=no)
 
 if test x$enable_pce_fast = xyes; then
                 AC_DEFINE([WANT_PCE_FAST_EMU], [1], [Define if we are compiling with separate fast PCE emulation.])
@@ -428,8 +428,8 @@ if test x$enable_pce_fast = xyes; then
 fi
 
 AC_ARG_ENABLE(pcfx,
- AC_HELP_STRING([--enable-pcfx], [build with PC-FX emulation [[default=yes]]]),
-                  , enable_pcfx=yes)
+ AC_HELP_STRING([--enable-pcfx], [build with PC-FX emulation [[default=no]]]),
+                  , enable_pcfx=no)
 
 if test x$enable_pcfx = xyes; then
                 AC_DEFINE([WANT_PCFX_EMU], [1], [Define if we are compiling with PC-FX emulation.])
@@ -440,8 +440,8 @@ if test x$enable_pcfx = xyes; then
 fi
 
 AC_ARG_ENABLE(psx,
- AC_HELP_STRING([--enable-psx], [build with PlayStation emulation [[default=yes]]]),
-                  , enable_psx=yes)
+ AC_HELP_STRING([--enable-psx], [build with PlayStation emulation [[default=no]]]),
+                  , enable_psx=no)
 
 if test x$enable_psx = xyes; then
                 AC_DEFINE([WANT_PSX_EMU], [1], [Define if we are compiling with PlayStation emulation.])
@@ -459,8 +459,8 @@ if test x$enable_sasplay = xyes; then
 fi
 
 AC_ARG_ENABLE(sms,
- AC_HELP_STRING([--enable-sms], [build with SMS+GG emulation [[default=yes]]]),
-                  , enable_sms=yes)
+ AC_HELP_STRING([--enable-sms], [build with SMS+GG emulation [[default=no]]]),
+                  , enable_sms=no)
 
 if test x$enable_sms = xyes; then
                 AC_DEFINE([WANT_SMS_EMU], [1], [Define if we are compiling with SMS+GG emulation.])
@@ -472,8 +472,8 @@ if test x$enable_sms = xyes; then
 fi
 
 AC_ARG_ENABLE(snes,
- AC_HELP_STRING([--enable-snes], [build with SNES emulation [[default=yes]]]),
-                  , enable_snes=yes)
+ AC_HELP_STRING([--enable-snes], [build with SNES emulation [[default=no]]]),
+                  , enable_snes=no)
 
 if test x$enable_snes = xyes; then
                 AC_DEFINE([WANT_SNES_EMU], [1], [Define if we are compiling with SNES emulation.])
@@ -481,8 +481,8 @@ if test x$enable_snes = xyes; then
 fi
 
 AC_ARG_ENABLE(snes-faust,
- AC_HELP_STRING([--enable-snes-faust], [build with experimental fast SNES emulation [[default=yes]]]),
-                  , enable_snes_faust=yes)
+ AC_HELP_STRING([--enable-snes-faust], [build with experimental fast SNES emulation [[default=yenos]]]),
+                  , enable_snes_faust=no)
 
 if test x$enable_snes_faust = xyes; then
                 AC_DEFINE([WANT_SNES_FAUST_EMU], [1], [Define if we are compiling with experimental fast SNES emulation.])
@@ -511,8 +511,8 @@ if test x$enable_ssfplay = xyes; then
 fi
 
 AC_ARG_ENABLE(vb,
- AC_HELP_STRING([--enable-vb], [build with Virtual Boy emulation [[default=yes]]]),
-                  , enable_vb=yes)
+ AC_HELP_STRING([--enable-vb], [build with Virtual Boy emulation [[default=no]]]),
+                  , enable_vb=no)
 
 if test x$enable_vb = xyes; then
                 AC_DEFINE([WANT_VB_EMU], [1], [Define if we are compiling with Virtual Boy emulation.])
@@ -523,8 +523,8 @@ fi
 
 
 AC_ARG_ENABLE(wswan,
- AC_HELP_STRING([--enable-wswan], [build with WonderSwan emulation [[default=yes]]]),
-                  , enable_wswan=yes)
+ AC_HELP_STRING([--enable-wswan], [build with WonderSwan emulation [[default=no]]]),
+                  , enable_wswan=no)
 
 if test x$enable_wswan = xyes; then
                 AC_DEFINE([WANT_WSWAN_EMU], [1], [Define if we are compiling with WonderSwan emulation.])
