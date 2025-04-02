@@ -30,19 +30,23 @@ static uint16* ROM = nullptr;
 template<typename T, bool IsWrite>
 static void Debug_RW_DB(uint32 A, uint16* DB)
 { 
- if((A &~ 0x3) == 0x02100000)
+ if((A &~ 0x3) == 0x04001000)
  {
- 
+
+//printf("HERE : %08x %04x\n", A, *DB);
+
   if(IsWrite)
   {
-   if(A == 0x02100001)
+   if(A == 0x04001000)
    {
 #ifdef MDFN_ENABLE_DEV_BUILD
-    const char c = *DB;
+    const char * c = (const char *)DB;
 
-    if(c != 0x1B)
+    c++;
+
+    if(*c != 0x1B)
     {
-     fputc(c, stdout);
+     fputc(*c, stdout);
      fflush(stdout);
     }
 #endif
@@ -82,9 +86,9 @@ void CART_Debug_Init(CartInfo* c, Stream* str)
   new_ROM[i] = MDFN_de16msb<true>(&new_ROM[i]);
   }
 
- SS_SetPhysMemMap (0x02000000, 0x020FFFFF, new_ROM.get(), 0x100000, false);
- c->CS01_SetRW8W16(0x02000000, 0x020FFFFF, Debug_ROM_Read);
- c->CS01_SetRW8W16(0x02100000, /*0x02100001*/ 0x021FFFFF,
+ SS_SetPhysMemMap (0x04000000, 0x040FFFFF, new_ROM.get(), 0x100000, false);
+ c->CS01_SetRW8W16(0x04000000, 0x040FFFFF, Debug_ROM_Read);
+ c->CS01_SetRW8W16(0x04000000, /*0x02100001*/ 0x040FFFFF,
 	Debug_RW_DB<uint16, false>,
 	Debug_RW_DB<uint8, true>,
 	Debug_RW_DB<uint16, true>);
