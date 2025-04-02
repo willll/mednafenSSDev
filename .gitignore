@@ -1,54 +1,54 @@
-# Prerequisites
-*.d
+# Build system files
+/Makefile
+/CMakeLists.txt
+/config.log
+/config.status
+/configure~
+/autom4te.cache/
 
-# Compiled Object files
+# Build artifacts and temporary files
+*.d
+*.o
+*.o2
 *.slo
 *.lo
-*.o
 *.obj
-
-# Precompiled Headers
 *.gch
 *.pch
-
-# Compiled Dynamic libraries
 *.so
 *.dylib
 *.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
 *.lai
 *.la
 *.a
 *.lib
-
-# Executables
+*.mod
+*.smod
 *.exe
 *.out
 *.app
-
-/src/mednafen*
-!/src/mednafen*.*
-*.o
-*.o2
-*.a
 .Tpo
-.deps
+.deps/
 .dirstamp
-/include/config.h.in~
-/autom4te.cache
-/Makefile
-/config.log
-/config.status
+**/.deps/
+**/.dirstamp
+
+# Binary and output directories
+/bin/
+
+# Generated headers and external libraries
 /include/config.h
-/include/minilzo/
+/include/config.h.in~
 /include/stamp-h1
+/include/minilzo/
 /include/trio/
 /include/zstd/
+
+# Mednafen specific
+/src/mednafen*
+!/src/mednafen*.*
+
+# Generated makefiles
 /intl/Makefile
 /po/Makefile
 /po/Makefile.in
@@ -59,4 +59,3 @@
 /src/drivers_libxxx/Makefile
 /src/sexyal/Makefile
 /src/ss/Makefile
-
