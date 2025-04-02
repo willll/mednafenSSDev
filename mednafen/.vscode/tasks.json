@@ -1,0 +1,55 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "shell",
+      "label": "autoupdate",
+      "command": "autoupdate",
+      "args": [
+  
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "type": "shell",
+      "label": "configure",
+      "command": "./configure",
+      "args": [
+        "--enable-dev-build",
+        "--enable-debugger",
+        "LDFLAGS=-lpthread"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "type": "shell",
+      "label": "make",
+      "command": "make",
+      "args": [
+        "-j4"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": ["configure"],
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "type": "shell",
+      "label": "build",
+      "dependsOn": ["configure", "make"],
+      "dependsOrder": "sequence",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}

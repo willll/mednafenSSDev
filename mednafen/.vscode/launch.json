@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "cppdbg",
+      "request": "launch",
+      "name": "Launch mednafen",
+      "program": "${workspaceFolder}/src/mednafen",
+      "args": [
+        "-force_module",
+        "ss",
+        "/home/will/tmp/SaturnRingLib/Samples/Logs/BuildDrop/logs.cue"
+      ],
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "build"
+    }
+  ]
+}
