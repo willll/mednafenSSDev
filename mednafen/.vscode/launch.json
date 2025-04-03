@@ -5,14 +5,14 @@
       "type": "cppdbg",
       "request": "launch",
       "name": "Launch mednafen",
-      "program": "${workspaceFolder}/src/mednafen",
+      "program": "${workspaceFolder}/build/Mednafen",
       "args": [
         "-force_module",
         "ss",
-        "/home/will/tmp/SaturnRingLib/Samples/Logs/BuildDrop/logs.cue"
+        "~/smsplus.cue"
       ],
       "cwd": "${workspaceFolder}",
-      "preLaunchTask": "build"
+      //"preLaunchTask": "build"
     }
   ]
 }
