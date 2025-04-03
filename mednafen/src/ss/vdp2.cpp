@@ -48,7 +48,7 @@ static sscpu_timestamp_t lastts;
 //
 //
 //
-static uint16 RawRegs[0x100];	// For debugging
+uint16 RawRegs[0x100];	// For debugging
 
 static bool DisplayOn;
 static bool BorderMode;

@@ -63,8 +63,6 @@ void med_imgui_kill()
     ImGui::DestroyContext();
 }
 
-void debugui_get_cpu(int cpu_n, debugui_cpu_tab_t *tab);
-
 static void _med_imgui_debug_register_render()
 {
     debugui_cpu_tab_t tab;
@@ -80,8 +78,9 @@ static void _med_imgui_debug_register_render()
         {
             if (ImGui::BeginTabItem(tabs[tab_n]))
             {
-                ImGui::BeginTable(tabs[tab_n], 2);
                 debugui_get_cpu(tab_n, &tab);
+
+                ImGui::BeginTable(tabs[tab_n], 2);
 
                 for (int row = 0; row < tab.regs_count; row++)
                 {
@@ -91,6 +90,50 @@ static void _med_imgui_debug_register_render()
                     ImGui::Text(tab.regs[row].name);
                     ImGui::TableSetColumnIndex(1);
                     ImGui::Text("%08x", tab.regs[row].value);
+                }
+
+                ImGui::EndTable();
+                ImGui::EndTabItem();
+            }
+        }
+    }
+
+    ImGui::EndTabBar();
+}
+
+static void _med_imgui_dev_register_render()
+{
+    debugui_reg_tab_t tab;
+    ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
+
+    char *tabs[] = {
+        "VDP2 Common"};
+
+    if (ImGui::BeginTabBar("Registers", tab_bar_flags))
+    {
+        for (int tab_n = 0; tab_n < sizeof(tabs) / sizeof(tabs[0]); tab_n++)
+        {
+            if (ImGui::BeginTabItem(tabs[tab_n]))
+            {
+                debugui_get_dev_regs(tab_n, &tab);
+                
+                ImGui::BeginTable(tabs[tab_n], 4);
+                for (int row = 0; row < tab.regs_count; row++)
+                {
+                    ImGui::TableNextRow();
+                    
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::Text("%s",tab.regs[row].adr);
+
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::Text("%s",tab.regs[row].name);
+
+                    
+                    ImGui::TableSetColumnIndex(2);
+                    ImGui::Text(tab.regs[row].dec.c_str());
+
+                    ImGui::TableSetColumnIndex(3);
+                    ImGui::Text("%04x", tab.regs[row].value);
                 }
 
                 ImGui::EndTable();
@@ -199,6 +242,7 @@ void med_imgui_render_start()
 
     // draw debug
     _med_imgui_debug_register_render();
+    _med_imgui_dev_register_render();
 
     glClear(GL_COLOR_BUFFER_BIT);
 }
