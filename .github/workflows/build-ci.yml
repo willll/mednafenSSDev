@@ -18,7 +18,7 @@ jobs:
         run: sudo dnf -y install autoconf automake binutils cpp gcc make pkgconf pkgconf-m4 pkgconf-pkg-config zip unzip git mingw64-gcc mingw64-gcc-c++ mingw64-zlib mingw64-flac mingw64-SDL2 mingw64-win-iconv
       - uses: actions/checkout@v4
       - name: Configure
-        run: CPPFLAGS="-DUNICODE=1 -D_UNICODE=1 -DPCEDEVEL_FLAC_DLL" LDFLAGS="-fstack-protector -static-libstdc++ -lmingw32" ./configure --host=x86_64-w64-mingw32 --enable-threads=win32 --disable-alsa --disable-jack --enable-dev-build --enable-debugger
+        run: CPPFLAGS="-DUNICODE=1 -D_UNICODE=1 -DPCEDEVEL_FLAC_DLL" LDFLAGS="-fstack-protector -static-libstdc++ -lmingw32" ./configure --host=x86_64-w64-mingw32 --enable-threads=win32 --disable-alsa --disable-jack 
       - name: Build
         run: make -j$(nproc)
       - name: Package artifact
