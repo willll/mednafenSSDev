@@ -16,7 +16,7 @@ jobs:
       - name: Configure
         run: mkdir -p bin && cd bin && cmake -G Ninja ..
       - name: Build
-        run: cmake --build . -j$(nproc)
+        run: ninja -j$(nproc)
       - name: Package artifact
         run: mkdir dist && cp src/mednafen ./COPYING dist/
       - name: Archive artifact
