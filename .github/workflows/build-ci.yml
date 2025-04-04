@@ -18,11 +18,11 @@ jobs:
         run: sudo dnf -y install autoconf automake binutils cpp gcc make pkgconf pkgconf-m4 pkgconf-pkg-config zip unzip git mingw64-gcc mingw64-gcc-c++ mingw64-zlib mingw64-flac mingw64-SDL2 mingw64-win-iconv
       - uses: actions/checkout@v4
       - name: Configure
-        run: CPPFLAGS="-DUNICODE=1 -D_UNICODE=1 -DPCEDEVEL_FLAC_DLL" LDFLAGS="-fstack-protector -static-libstdc++" ./configure --host=x86_64-w64-mingw32 --enable-threads=win32 --disable-alsa --disable-jack
+        run: CPPFLAGS="-DUNICODE=1 -D_UNICODE=1 -DPCEDEVEL_FLAC_DLL" LDFLAGS="-fstack-protector -static-libstdc++" ./configure --host=x86_64-w64-mingw32 --enable-threads=win32 --disable-alsa --disable-jack --enable-dev-build --enable-debugger
       - name: Build
         run: make -j$(nproc)
       - name: Package artifact
-        run: mkdir dist && cp src/mednafen.exe $SYSROOT/bin/SDL2.dll $SYSROOT/bin/iconv.dll $SYSROOT/bin/libFLAC-*.dll $SYSROOT/bin/libgcc* $SYSROOT/bin/libogg* $SYSROOT/bin/libssp* $SYSROOT/bin/libwinpthread* $SYSROOT/bin/zlib1.dll mednafen/COPYING dist/
+        run: mkdir dist && cp src/mednafen.exe $SYSROOT/bin/SDL2.dll $SYSROOT/bin/iconv.dll $SYSROOT/bin/libFLAC-*.dll $SYSROOT/bin/libgcc* $SYSROOT/bin/libogg* $SYSROOT/bin/libssp* $SYSROOT/bin/libwinpthread* $SYSROOT/bin/zlib1.dll ./COPYING dist/
       - name: Archive artifact
         uses: actions/upload-artifact@v4
         with:
@@ -37,11 +37,11 @@ jobs:
         run: sudo apt-get update && sudo apt-get install build-essential pkg-config libasound2-dev libflac-dev libsdl2-dev zip zlib1g-dev
       - uses: actions/checkout@v4
       - name: Configure
-        run: ./configure
+        run: ./configure --enable-dev-build --enable-debugger
       - name: Build
         run: make -j$(nproc)
       - name: Package artifact
-        run: mkdir dist && cp src/mednafen mednafen/COPYING dist/
+        run: mkdir dist && cp src/mednafen ./COPYING dist/
       - name: Archive artifact
         uses: actions/upload-artifact@v4
         with:
