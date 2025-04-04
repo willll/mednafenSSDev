@@ -1,6 +1,6 @@
 # Build system files
 /Makefile
-/CMakeLists.txt
+!/CMakeLists.txt
 /config.log
 /config.status
 /configure~
