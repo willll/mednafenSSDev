@@ -1,10 +1,13 @@
 cmake_minimum_required(VERSION 3.15)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 
 include(FindPkgConfig)
 
 project(Mednafen)
 
 include_directories(BEFORE "include")
+include_directories(BEFORE "ares")
 
 
 # linux x64 config
@@ -300,6 +303,18 @@ set(SATURN
     src/ss/ssf.cpp
 
 )
+# ================
+# NALL (from ares) + GDB
+set(GDB_NALL
+    #ares/nall/gdb/server.cpp
+    #ares/nall/tcptext/tcp-socket.cpp
+    #ares/nall/tcptext/tcptext-server.cpp
+    src/drivers_imgui/nall-gdb.cpp
+)
+
+# ================
+
+
 set(SASPLAY src/sasplay/sasplay.cpp)
 
 set(SYSTEMS ${SATURN} ${SASPLAY} src/demo/demo.cpp src/cdplay/cdplay.cpp)
@@ -315,10 +330,11 @@ find_package(OpenGL REQUIRED)
 find_package(ZLIB REQUIRED)
 
 
-add_executable(${CMAKE_PROJECT_NAME} ${SRCS} ${DRIVERS} ${SYSTEMS})
+add_executable(${CMAKE_PROJECT_NAME} ${SRCS} ${DRIVERS} ${SYSTEMS} ${GDB_NALL})
 target_link_libraries(${CMAKE_PROJECT_NAME} ${SDL2_LIBRARIES} ${OPENGL_LIBRARY} ${FLAC_LIBRARIES} ${ZLIB_LIBRARIES} ${ALSA_LIBRARIES})
 target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -fsigned-char -fwrapv     -fno-fast-math -fno-unsafe-math-optimizations -fno-aggressive-loop-optimizations  -Os -fvisibility=hidden )
 target_link_options(${CMAKE_PROJECT_NAME} PRIVATE )
+set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD 23)
 
 
 set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY POSITION_INDEPENDENT_CODE FALSE)

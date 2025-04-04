@@ -18,6 +18,8 @@
 #include "main.h"
 #include <SDL_revision.h>
 
+#include "nall-gdb.h"
+
 #ifdef WIN32
  #include <mednafen/win32-common.h>
 #else
@@ -2653,6 +2655,8 @@ static bool PassBlit(const int WhichVideoBuffer)
 static bool MDFND_Update(int WhichVideoBuffer, int16 *Buffer, int Count)
 {
  bool ret = false;
+
+ med_gdb_update();
 
  if(WhichVideoBuffer >= 0)
  {
