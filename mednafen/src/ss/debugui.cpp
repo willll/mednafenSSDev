@@ -66,13 +66,13 @@ uint32_t gdb_get_reg(int cpu_n, uint32_t i)
         return CPU[cpu_n].R[i];
 
     switch(i) {
-        case 17: return CPU[cpu_n].PC;
-        case 18: return CPU[cpu_n].PR;
-        case 19: return CPU[cpu_n].GBR;
-        case 20: return CPU[cpu_n].VBR;
-        case 21: return CPU[cpu_n].MACH;
-        case 22: return CPU[cpu_n].MACL;
-        case 23: return CPU[cpu_n].SR;
+        case 16: return CPU[cpu_n].PC;
+        case 17: return CPU[cpu_n].PR;
+        case 18: return CPU[cpu_n].GBR;
+        case 19: return CPU[cpu_n].VBR;
+        case 20: return CPU[cpu_n].MACH;
+        case 21: return CPU[cpu_n].MACL;
+        case 22: return CPU[cpu_n].SR;
         default:return 0;
     }
 }

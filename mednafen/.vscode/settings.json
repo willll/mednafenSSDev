@@ -56,5 +56,6 @@
         "cinttypes": "cpp",
         "typeinfo": "cpp",
         "*.inc": "cpp"
-    }
+    },
+    "cmake.ignoreCMakeListsMissing": true
 }
