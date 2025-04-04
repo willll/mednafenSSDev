@@ -8,15 +8,15 @@ permissions:
 jobs:
   # === Linux (Ubuntu 20.04) ===
   linux64:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Install required dependencies
-        run: sudo apt-get update && sudo apt-get install build-essential pkg-config libasound2-dev libflac-dev libsdl2-dev zip zlib1g-dev
+        run: sudo apt-get update && sudo apt-get install cmake ninja-build build-essential pkg-config libasound2-dev libflac-dev libsdl2-dev zip zlib1g-dev
       - uses: actions/checkout@v4
       - name: Configure
-        run: ./configure --enable-dev-build --enable-debugger
+        run: mkdir -p bin && cd bin && cmake -G Ninja ..
       - name: Build
-        run: make -j$(nproc)
+        run: cmake --build . -j$(nproc)
       - name: Package artifact
         run: mkdir dist && cp src/mednafen ./COPYING dist/
       - name: Archive artifact

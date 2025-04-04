@@ -1,4 +1,7 @@
+[![Build](https://github.com/willll/mednafenSSDev/actions/workflows/build-ci.yml/badge.svg)](https://github.com/willll/mednafenSSDev/actions/workflows/build-ci.yml)
+
 # mednafenSSDev
+
 
 A managed Mednafen Git repository with relevant fixes to support the Sega Saturn Developer Community.
 

@@ -8,7 +8,7 @@
 
 # Build artifacts and temporary files
 *.d
-*.o
+**/*.o
 *.o2
 *.slo
 *.lo
@@ -62,3 +62,4 @@
 confdefs.h
 conftest.cpp
 conftest.err
+
