@@ -11,12 +11,12 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Install required dependencies
-        run: sudo apt-get update && sudo apt-get install cmake ninja-build build-essential pkg-config libasound2-dev libflac-dev libsdl2-dev zip zlib1g-dev
+        run: sudo apt-get update && sudo apt-get install build-essential pkg-config libasound2-dev libflac-dev libsdl2-dev zip zlib1g-dev
       - uses: actions/checkout@v4
       - name: Configure
-        run: mkdir -p bin && cd bin && cmake -G Ninja ..
+        run: ./configure --enable-dev-build --enable-debugger
       - name: Build
-        run: cd bin && ninja -j$(nproc)
+        run: make -j$(nproc)
       - name: Package artifact
         run: mkdir dist && cp src/mednafen ./COPYING dist/
       - name: Archive artifact
