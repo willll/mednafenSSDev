@@ -55,7 +55,9 @@
         "cfenv": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp",
-        "*.inc": "cpp"
+        "*.inc": "cpp",
+        "*.~": "cpp",
+        "condition_variable": "cpp"
     },
     "cmake.ignoreCMakeListsMissing": true
 }

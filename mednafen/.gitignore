@@ -27,5 +27,6 @@
 /src/sexyal/Makefile
 /src/ss/Makefile
 build/
+buildw32/
 *~
 imgui.ini

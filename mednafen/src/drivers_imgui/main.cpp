@@ -2179,14 +2179,7 @@ static bool MSW_GetArgcArgv(int *argc, char ***argv)
 
 
 
-#ifdef WIN32
-extern "C"
-{
- void __set_app_type(int);
- extern int mingw_app_type;
-}
-__attribute__((force_align_arg_pointer))	// Not sure what's going on to cause this to be needed.
-#endif
+
 int main(int argc, char *argv[])
 {
 	// SuppressErrorPopups must be set very early.
@@ -2198,19 +2191,6 @@ int main(int argc, char *argv[])
 	 else
 	  SuppressErrorPopups = false;
 
-#ifdef WIN32
-	 // for assert() and abort()
-	 if(SuppressErrorPopups)
-	 {
-	  __set_app_type(1);
-	  mingw_app_type = 0;
-	 }
-	 else
-	 {
-	  __set_app_type(2);
-	  mingw_app_type = 1;
-	 }
-#endif
 	}
 	//
 	//
