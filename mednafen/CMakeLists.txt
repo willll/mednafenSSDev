@@ -18,6 +18,8 @@ add_compile_definitions("HAVE_CONFIG_H")
 # win32 config
 if (WIN32)
     add_compile_definitions("WIN32" "UNICODE" "_UNICODE")
+else()    
+    add_compile_definitions(LOCALEDIR="/usr/local/share/locale/")
 endif()
 
 set(CMAKE_CXX_FLAGS -fdiagnostics-color=always)
