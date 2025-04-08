@@ -7,19 +7,7 @@ include(FindPkgConfig)
 include(CheckTypeSize)
 
 
-check_type_size(char SIZEOF_CHAR)
-check_type_size(short SIZEOF_SHORT)
-check_type_size(int SIZEOF_INT)
-check_type_size(long SIZEOF_LONG)
-check_type_size("void *" SIZEOF_VOID_P)
-check_type_size("long long" SIZEOF_LONG_LONG)
-check_type_size(off_t SIZEOF_OFF_T)
-check_type_size(size_t SIZEOF_SIZE_T)
-check_type_size(ptrdiff_t SIZEOF_PTRDIFF_T)
-check_type_size(__int64 SIZEOF___INT64)
-
-
-include_directories(${CMAKE_BINARY_DIR}) # config.h
+include_directories(${CMAKE_BINARY_DIR}) # config.h, trio etc ...
 include_directories(BEFORE "include")
 include_directories(BEFORE "ares")
 
@@ -29,8 +17,7 @@ add_compile_definitions("HAVE_CONFIG_H")
 
 # win32 config
 if (WIN32)
-#add_compile_definitions("WIN32" "PLATFORM_WINDOWS")
-add_compile_definitions("WIN32" "UNICODE" "_UNICODE")
+    add_compile_definitions("WIN32" "UNICODE" "_UNICODE")
 endif()
 
 set(CMAKE_CXX_FLAGS -fdiagnostics-color=always)
@@ -373,7 +360,6 @@ endif()
 set(SASPLAY src/sasplay/sasplay.cpp)
 
 set(SYSTEMS ${SATURN} ${SASPLAY} src/demo/demo.cpp src/cdplay/cdplay.cpp)
-#set(SYSTEMS )
 
 
 # add sdl2
@@ -408,10 +394,30 @@ set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD 23)
 
 set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY POSITION_INDEPENDENT_CODE FALSE)
 
+# original build system, copy some folders in include dir
+file(COPY src/trio/ DESTINATION ${CMAKE_BINARY_DIR}/trio)
+file(COPY src/minilzo/ DESTINATION ${CMAKE_BINARY_DIR}/minilzo)
+file(COPY include/minilzo_internal/minilzo.h DESTINATION ${CMAKE_BINARY_DIR}/minilzo/)
+file(COPY src/zstd/ DESTINATION ${CMAKE_BINARY_DIR}/zstd)
 
 
 
 # config file
+# autoconf create a config.h file, attempt to create it from cmake
+# =====
+
+check_type_size(char SIZEOF_CHAR)
+check_type_size(short SIZEOF_SHORT)
+check_type_size(int SIZEOF_INT)
+check_type_size(long SIZEOF_LONG)
+check_type_size("void *" SIZEOF_VOID_P)
+check_type_size("long long" SIZEOF_LONG_LONG)
+check_type_size(off_t SIZEOF_OFF_T)
+check_type_size(size_t SIZEOF_SIZE_T)
+check_type_size(ptrdiff_t SIZEOF_PTRDIFF_T)
+check_type_size(__int64 SIZEOF___INT64)
+
+
 if (WIN32)
     set(MDFN_PSS_STYLE 2)
     set(HAVE_WASAPI 1)
