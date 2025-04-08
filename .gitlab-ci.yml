@@ -1,4 +1,4 @@
-image: registry.gitlab.com/ced2911/mednafen-saturn-dev/mednafen-saturn-dev:latest
+image: registry.gitlab.com/ced2911/mednafen-saturn-dev:latest
 build-win32:
     stage: build
     script:
