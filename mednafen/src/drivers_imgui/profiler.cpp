@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdio.h>
 #include <stack>
 #include <vector>
 #include <algorithm>
@@ -15,10 +16,17 @@ typedef struct
     uint64_t frame_call_count;
     uint64_t frame_cycles_count;
 
+    uint64_t cycles_start;
+    uint64_t cycles_end;
+
     void resetFrame()
     {
         this->frame_call_count = 0;
-        this->frame_cycles_count = 0;
+        // do not reset in mid frame
+        if (cycles_end > cycles_start)
+        {
+            this->frame_cycles_count = 0;
+        }
     }
 } profile_item_t;
 
@@ -39,16 +47,21 @@ void DBGProfiler::start(int cpu_n, uint32_t address)
 {
     call_stack.push(address);
     profile_stack[address].address = address;
-    profile_stack[address].address = address;
+    profile_stack[address].cycles_start = cycles[cpu_n];
     profile_stack[address].total_call_count++;
     profile_stack[address].frame_call_count++;
 }
 
-void DBGProfiler::end(int cpu_n, uint32_t pc)
+__attribute__((noinline)) void DBGProfiler::end(int cpu_n, uint32_t pc)
 {
     uint32_t address = call_stack.top();
+    uint32_t d = cycles[cpu_n] - profile_stack[address].cycles_start;
+
+    profile_stack[address].total_cycles_count += d;
+    profile_stack[address].frame_cycles_count += d;
+    profile_stack[address].cycles_end = cycles[cpu_n];
+
     call_stack.pop();
-    // add time ?
 }
 
 void DBGProfiler::frame()

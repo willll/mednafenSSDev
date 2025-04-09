@@ -271,6 +271,7 @@ set(DRIVERS_UI
     # wip
     src/drivers_imgui/med_imgui.cpp
     src/drivers_imgui/profiler.cpp
+    src/drivers_imgui/elf_parser.cpp
 )
 set(DRIVERS ${DRIVERS_UI}
     src/drivers_imgui/imgui/backends/imgui_impl_opengl2.cpp
@@ -373,21 +374,29 @@ pkg_search_module(FLAC REQUIRED flac)
 
 find_package(OpenGL REQUIRED)
 find_package(ZLIB REQUIRED)
+find_package(ZLIB REQUIRED)
 
 
 set(OS_LIBS )
 # Linux
 if (UNIX)
-    pkg_search_module(ALSA REQUIRED alsa)
+
+pkg_search_module(ALSA REQUIRED alsa)
 endif()
 
 if (WIN32)
 set(BUILD_SHARED_LIBS OFF)
 
-    find_package(Iconv  REQUIRED)
-    set(OS_LIBS ${OS_LIBS} ws2_32 dinput -static -mconsole)
+find_package(Iconv  REQUIRED)
+set(OS_LIBS ${OS_LIBS} ws2_32 dinput -static -mconsole)
 endif()
 
+# elf/bfd
+find_library(BFD_LIBRARY NAMES bfd)
+if (BFD_LIBRARY)
+    add_compile_definitions("ELF_BFD")
+    set(OS_LIBS ${OS_LIBS} ${BFD_LIBRARY})
+endif()
 
 add_executable(${CMAKE_PROJECT_NAME} ${SRCS} ${DRIVERS} ${SYSTEMS} ${GDB_NALL})
 target_link_libraries(${CMAKE_PROJECT_NAME} ${SDL2_LIBRARIES} ${OPENGL_LIBRARY} ${FLAC_LINK_LIBRARIES} ${ZLIB_LIBRARIES} ${ALSA_LIBRARIES} ${Iconv_LIBRARIES} ${OS_LIBS} )

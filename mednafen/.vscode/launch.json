@@ -7,11 +7,13 @@
       "name": "Launch mednafen",
       "program": "${workspaceFolder}/build/Mednafen",
       "args": [
+        "-elf",
+        "~/smsplus.elf",
         "-force_module",
         "ss",
-        "~/smsplus.cue"
+        "~/smsplus.cue",
       ],
-      "cwd": "${workspaceFolder}",
+      "cwd": "${workspaceFolder}/build",
       //"preLaunchTask": "build"
     }
   ]

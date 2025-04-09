@@ -68,6 +68,7 @@
 
 //===========
 #include "med_imgui.h"
+#include "elf_parser.h"
 
 //===========
 
@@ -885,6 +886,7 @@ static bool DoArgs(int argc, char *argv[], char **filename)
 	int ShowCLHelp = 0;
 	int ShowConfigMacros = 0;
 
+	char *elf = NULL;
 	char *dsfn = NULL;
 	char *dmfn = NULL;
 	char *dummy_remote = NULL;
@@ -954,6 +956,8 @@ static bool DoArgs(int argc, char *argv[], char **filename)
 	 // Quick kludge to avoid breaking frontends and scripts due to the setting being removed.
 	 { "ss.midsync", NULL, 0, &ss_midsync, SUBSTYPE_INTEGER },
 	 #endif
+	 
+	 { "elf", NULL, 0, &elf, SUBSTYPE_STRING_ALLOC },
 
 	 { 0, 0, 0, 0 }
         };
@@ -1027,6 +1031,10 @@ static bool DoArgs(int argc, char *argv[], char **filename)
 
 	 if(dsfn || dmfn)
 	  return false;
+
+	 if (elf)
+	  elf_parser_load_elf(elf);
+
 
 	 if(*filename == NULL)
 	 {

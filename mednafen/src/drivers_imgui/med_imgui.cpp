@@ -13,6 +13,7 @@
 #include "debugui.h"
 
 #include "profiler.h"
+#include "elf_parser.h"
 
 GLuint fb_tex_id;
 
@@ -149,15 +150,33 @@ void _med_imgui_copy_texture(GLuint sourceTexture, GLuint destinationTexture)
 static void _med_imgui_render_profiler()
 {
     ImGui::Begin("prof");
+
+    ImGui::BeginTable("cpu_perf", 4);
     dbg_profiler.frame();
+    ImGui::EndTable();
     ImGui::End();
     dbg_profiler.reset();
 }
 
 static void _med_imgui_render_profiler_item(uint32_t adr, uint32_t cycles_count, uint32_t call_count)
 {
-    ImGui::Text("Addr: %08x [%d]", adr, call_count);
-    //printf("Addr: %08x [%d]\n", adr, call_count);
+    // ImGui::Text("Addr: %08x [%d] -- [%d]", adr, cycles_count, call_count);
+    // printf("Addr: %08x [%d]\n", adr, call_count);
+
+    ImGui::TableNextRow();
+
+    ImGui::TableSetColumnIndex(0);
+    std::string line;
+    if (elf_parser_adr2line(adr, line))
+        ImGui::Text(line.c_str());
+    else
+        ImGui::Text("%08x", adr);
+
+    ImGui::TableSetColumnIndex(1);
+    ImGui::Text("%d", cycles_count);
+
+    ImGui::TableSetColumnIndex(2);
+    ImGui::Text("%d", call_count);
 }
 
 void med_imgui_render_frame(const MDFN_Surface *src_surface, const MDFN_Rect *src_rect, const MDFN_Rect *dest_rect, const MDFN_Rect *original_src_rect, int InterlaceField, int UsingIP, int rotated)
