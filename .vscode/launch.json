@@ -12,7 +12,7 @@
         "/home/will/tmp/SaturnRingLib/Samples/Logs/BuildDrop/logs.cue"
       ],
       "cwd": "${workspaceFolder}",
-      "preLaunchTask": "build"
+      //"preLaunchTask": "build"
     }
   ]
 }

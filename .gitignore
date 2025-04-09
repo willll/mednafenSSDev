@@ -1,14 +1,6 @@
-# Build system files
-/Makefile
-!/CMakeLists.txt
-/config.log
-/config.status
-/configure~
-/autom4te.cache/
-
-# Build artifacts and temporary files
-*.d
-**/*.o
+/src/mednafen*
+!/src/mednafen*.*
+*.o
 *.o2
 *.slo
 *.lo
@@ -28,7 +20,7 @@
 *.out
 *.app
 .Tpo
-.deps/
+.deps
 .dirstamp
 **/.deps/
 **/.dirstamp
@@ -39,8 +31,13 @@
 # Generated headers and external libraries
 /include/config.h
 /include/config.h.in~
-/include/stamp-h1
+/autom4te.cache
+/Makefile
+/config.log
+/config.status
+/include/config.h
 /include/minilzo/
+/include/stamp-h1
 /include/trio/
 /include/zstd/
 
@@ -59,7 +56,7 @@
 /src/drivers_libxxx/Makefile
 /src/sexyal/Makefile
 /src/ss/Makefile
-confdefs.h
-conftest.cpp
-conftest.err
-
+build/
+buildw32/
+*~
+imgui.ini

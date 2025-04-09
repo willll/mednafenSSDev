@@ -31,6 +31,8 @@
 #include "prompt.h"
 #include "video.h"
 
+#include "nall-gdb.h"
+
 static MemDebugger* memdbg = NULL;
 static std::unique_ptr<FileStream> TraceLog;
 static std::string TraceLogSpec;
@@ -1910,6 +1912,8 @@ void Debugger_Init(void)
 	 Debugger_GT_Toggle();
 	 Debugger_GT_ForceSteppingMode();
 	}
+
+  med_init_gdb();
 }
 
 void Debugger_Kill(void)

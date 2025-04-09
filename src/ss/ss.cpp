@@ -31,6 +31,8 @@
 #include <mednafen/hash/md5.h>
 #include <mednafen/Time.h>
 
+#include "../drivers_imgui/nall-gdb.h"
+
 #include <bitset>
 
 #include <trio/trio.h>
@@ -132,7 +134,7 @@ static int64 BackupRAM_SaveDelay;
 static int64 CartNV_SaveDelay;
 
 #define SH7095_EXT_MAP_GRAN_BITS 16
-static uintptr_t SH7095_FastMap[1U << (32 - SH7095_EXT_MAP_GRAN_BITS)];
+uintptr_t SH7095_FastMap[1U << (32 - SH7095_EXT_MAP_GRAN_BITS)];
 
 int32 SH7095_mem_timestamp;
 static uint32 SH7095_BusLock;
@@ -720,6 +722,7 @@ static INLINE int32 RunLoop_INLINE(EmulateSpecStruct* espec)
      DBG_CPUHandler<0>();
     }
 
+    med_gdb_report_pc(CPU[0].PC);
     CPU[0].Step<0, EmulateICache, DebugMode>();
     CPU[0].DMA_BusTimingKludge();
 
@@ -737,6 +740,7 @@ static INLINE int32 RunLoop_INLINE(EmulateSpecStruct* espec)
       if(DebugMode)
        DBG_CPUHandler<1>();
 
+      med_gdb_report_pc(CPU[1].PC);
       CPU[1].Step<1, false, DebugMode>();
      }
     }

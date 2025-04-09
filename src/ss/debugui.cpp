@@ -59,6 +59,34 @@ static debugui_cpu_reg_t regs_sh2[] = {
     // need more ...
 };
 
+
+uint32_t gdb_get_reg(int cpu_n, uint32_t i)
+{
+    if (i < 16)
+        return CPU[cpu_n].R[i];
+
+    switch(i) {
+        case 16: return CPU[cpu_n].PC;
+        case 17: return CPU[cpu_n].PR;
+        case 18: return CPU[cpu_n].GBR;
+        case 19: return CPU[cpu_n].VBR;
+        case 20: return CPU[cpu_n].MACH;
+        case 21: return CPU[cpu_n].MACL;
+        case 22: return CPU[cpu_n].SR;
+        default:return 0;
+    }
+}
+
+
+uint8_t gdb_mem_peek8(uint32_t adr) {   
+    return ne16_rbo_be<uint8_t>(SH7095_FastMap[adr >> SH7095_EXT_MAP_GRAN_BITS], adr);
+}
+
+
+uint32_t gdb_mem_peek(uint32_t adr) {
+    return ne16_rbo_be<uint32>(SH7095_FastMap[adr >> SH7095_EXT_MAP_GRAN_BITS], adr);
+}
+
 static void _sh2_tab(int cpu_n, debugui_cpu_tab_t *tab)
 {
     tab->regs = regs_sh2;
@@ -101,7 +129,7 @@ void debugui_get_cpu(int cpu_n, debugui_cpu_tab_t *tab)
 // VDP2 Regs
 // ================
 
-#define _VDP2_REG16(a, n) { .adr = (char *)a,.name = (char *)n, .fmt = REG_FMT_16}
+#define _VDP2_REG16(a, n) {.adr = (char *)a, .name = (char *)n, .fmt = REG_FMT_16}
 
 static debugui_dev_reg_t regs_common[] = {
     _VDP2_REG16("$25F8_0000", "TVMD"),
@@ -117,7 +145,7 @@ static debugui_dev_reg_t regs_common[] = {
 static void debugui_get_dev_common_vdp2_regs(debugui_reg_tab_t *tab)
 {
     tab->regs = regs_common;
-    tab->regs_count = sizeof(regs_common)/sizeof(regs_common[0]);
+    tab->regs_count = sizeof(regs_common) / sizeof(regs_common[0]);
     //===
     // tvmd
     //===
@@ -157,13 +185,13 @@ static void debugui_get_dev_common_vdp2_regs(debugui_reg_tab_t *tab)
     switch ((VDP2::RawRegs[0] >> 6) & 0x3)
     {
     case 0:
-        tvmd += "Non-Interlace";
+        tvmd += " Non-Interlace";
         break;
     case 2:
-        tvmd += "Single-Density Interlace";
+        tvmd += " Single-Density Interlace";
         break;
     case 3:
-        tvmd += "Double-Density Interlace";
+        tvmd += " Double-Density Interlace";
         break;
     }
 
