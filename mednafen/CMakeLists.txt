@@ -270,6 +270,7 @@ set(DRIVERS_UI
     # linux
     # wip
     src/drivers_imgui/med_imgui.cpp
+    src/drivers_imgui/profiler.cpp
 )
 set(DRIVERS ${DRIVERS_UI}
     src/drivers_imgui/imgui/backends/imgui_impl_opengl2.cpp
@@ -299,6 +300,7 @@ else()
     )
 endif()
 
+add_compile_definitions("DBG_IMGUI")
 include_directories(BEFORE "src/drivers_imgui/imgui" "src/drivers_imgui/imgui/backends")
 # ================
 

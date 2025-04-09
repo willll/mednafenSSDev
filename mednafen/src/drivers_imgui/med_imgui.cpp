@@ -12,6 +12,8 @@
 #include "med_imgui.h"
 #include "debugui.h"
 
+#include "profiler.h"
+
 GLuint fb_tex_id;
 
 //==============
@@ -25,35 +27,6 @@ static void med_init_textures()
     glBindTexture(GL_TEXTURE_2D, fb_tex_id);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-}
-
-void med_imgui_init(SDL_Window *_window, SDL_GLContext glcontext)
-{
-    window = _window;
-    // Setup Dear ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO &io = ImGui::GetIO();
-    (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
-    // io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;  // Enable Docking
-
-    //
-
-    // Setup Dear ImGui style
-    ImGui::StyleColorsDark();
-    // ImGui::StyleColorsLight();
-
-    // Setup Platform/Renderer backends
-    SDL_GL_MakeCurrent(window, glcontext);
-
-    ImGui_ImplSDL2_InitForOpenGL(window, glcontext);
-    ImGui_ImplOpenGL2_Init();
-
-    med_init_textures();
-
-    med_init = 1;
 }
 
 void med_imgui_kill()
@@ -116,19 +89,18 @@ static void _med_imgui_dev_register_render()
             if (ImGui::BeginTabItem(tabs[tab_n]))
             {
                 debugui_get_dev_regs(tab_n, &tab);
-                
+
                 ImGui::BeginTable(tabs[tab_n], 4);
                 for (int row = 0; row < tab.regs_count; row++)
                 {
                     ImGui::TableNextRow();
-                    
+
                     ImGui::TableSetColumnIndex(0);
-                    ImGui::Text("%s",tab.regs[row].adr);
+                    ImGui::Text("%s", tab.regs[row].adr);
 
                     ImGui::TableSetColumnIndex(1);
-                    ImGui::Text("%s",tab.regs[row].name);
+                    ImGui::Text("%s", tab.regs[row].name);
 
-                    
                     ImGui::TableSetColumnIndex(2);
                     ImGui::Text(tab.regs[row].dec.c_str());
 
@@ -172,6 +144,20 @@ void _med_imgui_copy_texture(GLuint sourceTexture, GLuint destinationTexture)
     glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, last_w, last_h, 0);
 
     glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+static void _med_imgui_render_profiler()
+{
+    ImGui::Begin("prof");
+    dbg_profiler.frame();
+    ImGui::End();
+    dbg_profiler.reset();
+}
+
+static void _med_imgui_render_profiler_item(uint32_t adr, uint32_t cycles_count, uint32_t call_count)
+{
+    ImGui::Text("Addr: %08x [%d]", adr, call_count);
+    //printf("Addr: %08x [%d]\n", adr, call_count);
 }
 
 void med_imgui_render_frame(const MDFN_Surface *src_surface, const MDFN_Rect *src_rect, const MDFN_Rect *dest_rect, const MDFN_Rect *original_src_rect, int InterlaceField, int UsingIP, int rotated)
@@ -243,6 +229,7 @@ void med_imgui_render_start()
     // draw debug
     _med_imgui_debug_register_render();
     _med_imgui_dev_register_render();
+    _med_imgui_render_profiler();
 
     glClear(GL_COLOR_BUFFER_BIT);
 }
@@ -268,4 +255,36 @@ void med_imgui_process_event(SDL_Event *event)
     if (med_init == 0)
         return;
     ImGui_ImplSDL2_ProcessEvent(event);
+}
+
+void med_imgui_init(SDL_Window *_window, SDL_GLContext glcontext)
+{
+    window = _window;
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO &io = ImGui::GetIO();
+    (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
+    // io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;  // Enable Docking
+
+    //
+
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark();
+    // ImGui::StyleColorsLight();
+
+    // Setup Platform/Renderer backends
+    SDL_GL_MakeCurrent(window, glcontext);
+
+    ImGui_ImplSDL2_InitForOpenGL(window, glcontext);
+    ImGui_ImplOpenGL2_Init();
+
+    med_init_textures();
+
+    dbg_profiler.cb = [](uint32_t adr, uint32_t cycles_count, uint32_t call_count)
+    { _med_imgui_render_profiler_item(adr, cycles_count, call_count); };
+
+    med_init = 1;
 }

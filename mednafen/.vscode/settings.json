@@ -57,7 +57,11 @@
         "typeinfo": "cpp",
         "*.inc": "cpp",
         "*.~": "cpp",
-        "condition_variable": "cpp"
+        "condition_variable": "cpp",
+        "chrono": "cpp",
+        "istream": "cpp",
+        "mutex": "cpp",
+        "sstream": "cpp"
     },
     "cmake.ignoreCMakeListsMissing": true
 }
