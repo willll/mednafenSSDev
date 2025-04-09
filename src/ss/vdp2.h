@@ -27,6 +27,8 @@ namespace MDFN_IEN_SS
 namespace VDP2
 {
 
+   extern uint16 RawRegs[0x100];	// For debugging
+
 uint32 Write8_DB(uint32 A, uint16 DB) MDFN_HOT;
 uint32 Write16_DB(uint32 A, uint16 DB) MDFN_HOT;
 uint16 Read16_DB(uint32 A) MDFN_HOT;
