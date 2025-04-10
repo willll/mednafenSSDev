@@ -13,6 +13,8 @@ jobs:
       - name: Install required dependencies
         run: sudo apt-get update && sudo apt-get install build-essential pkg-config libasound2-dev libflac-dev libsdl2-dev zip zlib1g-dev cmake ninja-build
       - uses: actions/checkout@v4
+      - name: Fetch submodules
+        run: git submodule update --init --recursive
       - name: Configure
         run: cmake -Bbuild -GNinja -DCMAKE_BUILD_TYPE=Debug -DENABLE_DEV_BUILD=ON -DENABLE_DEBUGGER=ON
       - name: Build
