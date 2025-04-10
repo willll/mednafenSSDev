@@ -96,16 +96,16 @@ static void _med_imgui_dev_register_render()
                 {
                     ImGui::TableNextRow();
 
-                    ImGui::TableSetColumnIndex(0);
+                    ImGui::TableNextColumn();
                     ImGui::Text("%s", tab.regs[row].adr);
 
-                    ImGui::TableSetColumnIndex(1);
+                    ImGui::TableNextColumn();
                     ImGui::Text("%s", tab.regs[row].name);
 
-                    ImGui::TableSetColumnIndex(2);
+                    ImGui::TableNextColumn();
                     ImGui::Text(tab.regs[row].dec.c_str());
 
-                    ImGui::TableSetColumnIndex(3);
+                    ImGui::TableNextColumn();
                     ImGui::Text("%04x", tab.regs[row].value);
                 }
 
@@ -151,32 +151,36 @@ static void _med_imgui_render_profiler()
 {
     ImGui::Begin("prof");
 
-    ImGui::BeginTable("cpu_perf", 4);
+    ImGui::BeginTable("cpu_perf", 3, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg);
+    ImGui::TableSetupColumn("line", ImGuiTableColumnFlags_WidthStretch);
+    ImGui::TableSetupColumn("# cycles", ImGuiTableColumnFlags_WidthFixed);
+    ImGui::TableSetupColumn("# call", ImGuiTableColumnFlags_WidthFixed);
+    ImGui::TableHeadersRow();
     dbg_profiler.frame();
     ImGui::EndTable();
     ImGui::End();
     dbg_profiler.reset();
 }
 
-static void _med_imgui_render_profiler_item(uint32_t adr, uint32_t cycles_count, uint32_t call_count)
+static void _med_imgui_render_profiler_item(uint32_t adr, uint64_t cycles_count, uint64_t call_count)
 {
     // ImGui::Text("Addr: %08x [%d] -- [%d]", adr, cycles_count, call_count);
     // printf("Addr: %08x [%d]\n", adr, call_count);
 
     ImGui::TableNextRow();
 
-    ImGui::TableSetColumnIndex(0);
+    ImGui::TableNextColumn();
     std::string line;
     if (elf_parser_adr2line(adr, line))
         ImGui::Text(line.c_str());
     else
         ImGui::Text("%08x", adr);
 
-    ImGui::TableSetColumnIndex(1);
-    ImGui::Text("%d", cycles_count);
+    ImGui::TableNextColumn();
+    ImGui::Text("%llu", cycles_count);
 
-    ImGui::TableSetColumnIndex(2);
-    ImGui::Text("%d", call_count);
+    ImGui::TableNextColumn();
+    ImGui::Text("%llu", call_count);
 }
 
 void med_imgui_render_frame(const MDFN_Surface *src_surface, const MDFN_Rect *src_rect, const MDFN_Rect *dest_rect, const MDFN_Rect *original_src_rect, int InterlaceField, int UsingIP, int rotated)
@@ -302,7 +306,7 @@ void med_imgui_init(SDL_Window *_window, SDL_GLContext glcontext)
 
     med_init_textures();
 
-    dbg_profiler.cb = [](uint32_t adr, uint32_t cycles_count, uint32_t call_count)
+    dbg_profiler.cb = [](uint32_t adr, uint64_t cycles_count, uint64_t call_count)
     { _med_imgui_render_profiler_item(adr, cycles_count, call_count); };
 
     med_init = 1;

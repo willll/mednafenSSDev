@@ -41,6 +41,7 @@
   }
 #define CPU_PROF_END(n, target)              \
   {                                          \
+    dbg_profiler.cycle(n, timestamp); \
     dbg_profiler.end(n, target);             \
   }
 #else

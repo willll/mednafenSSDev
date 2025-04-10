@@ -62,7 +62,8 @@
         "istream": "cpp",
         "mutex": "cpp",
         "sstream": "cpp",
-        "stack": "cpp"
+        "stack": "cpp",
+        "iostream": "cpp"
     },
     "cmake.ignoreCMakeListsMissing": true
 }

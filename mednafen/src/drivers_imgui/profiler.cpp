@@ -30,7 +30,13 @@ typedef struct
     }
 } profile_item_t;
 
-static std::stack<uint32_t> call_stack;
+struct stack_item_t {
+    stack_item_t(uint32_t a, uint32_t c): adr(a), cycle_start(c) {}
+    uint32_t adr;
+    uint32_t cycle_start;
+} ;
+
+static std::stack<stack_item_t> call_stack;
 static std::unordered_map<uint32_t, profile_item_t> profile_stack;
 
 void DBGProfiler::init()
@@ -45,21 +51,23 @@ void DBGProfiler::reset()
 
 void DBGProfiler::start(int cpu_n, uint32_t address)
 {
-    call_stack.push(address);
+
+    call_stack.push(stack_item_t(address, cycles[cpu_n]));
     profile_stack[address].address = address;
     profile_stack[address].cycles_start = cycles[cpu_n];
     profile_stack[address].total_call_count++;
     profile_stack[address].frame_call_count++;
 }
 
-__attribute__((noinline)) void DBGProfiler::end(int cpu_n, uint32_t pc)
+__attribute__((optimize("O0"))) void DBGProfiler::end(int cpu_n, uint32_t pc)
 {
-    uint32_t address = call_stack.top();
-    uint32_t d = cycles[cpu_n] - profile_stack[address].cycles_start;
+    stack_item_t stack = call_stack.top();
+    int64_t d = cycles[cpu_n] - stack.cycle_start;
 
-    profile_stack[address].total_cycles_count += d;
-    profile_stack[address].frame_cycles_count += d;
-    profile_stack[address].cycles_end = cycles[cpu_n];
+
+    profile_stack[stack.adr].total_cycles_count += d;
+    profile_stack[stack.adr].frame_cycles_count += d;
+    profile_stack[stack.adr].cycles_end = cycles[cpu_n];
 
     call_stack.pop();
 }
@@ -83,8 +91,8 @@ void DBGProfiler::frame()
             cb(data.second.address, data.second.frame_cycles_count, data.second.frame_call_count);
         }
     }
-    for (auto &data : profile_stack)
-    {
-        data.second.resetFrame();
-    }
+    // for (auto &data : profile_stack)
+    // {
+    //     data.second.resetFrame();
+    // }
 }

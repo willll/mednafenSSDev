@@ -12,7 +12,7 @@ public:
     void reset();
     void frame();
     void cycle(int n, uint32_t c) { cycles[n] = c; }
-    std::function<void(uint32_t adr, uint32_t cycles_count, uint32_t call_count)> cb{};
+    std::function<void(uint32_t adr, uint64_t cycles_count, uint64_t call_count)> cb{};
 };
 
 extern DBGProfiler dbg_profiler;

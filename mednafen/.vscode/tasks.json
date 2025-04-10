@@ -35,9 +35,9 @@
         "-j4"
       ],
       "options": {
-        "cwd": "${workspaceFolder}"
+        "cwd": "${workspaceFolder}/build"
       },
-      "dependsOn": ["configure"],
+     // "dependsOn": ["configure"],
       "problemMatcher": ["$gcc"]
     },
     {

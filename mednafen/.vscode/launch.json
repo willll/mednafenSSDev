@@ -14,7 +14,7 @@
         "~/smsplus.cue",
       ],
       "cwd": "${workspaceFolder}/build",
-      //"preLaunchTask": "build"
+      "preLaunchTask": "make"
     }
   ]
 }
