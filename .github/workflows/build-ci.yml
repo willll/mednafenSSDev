@@ -20,7 +20,7 @@ jobs:
       - name: Build
         run: cmake --build build
       - name: Package artifact
-        run: mkdir dist && cp build/src/mednafen ./COPYING dist/
+        run: mkdir dist && cp build/mednafen ./COPYING dist/
       - name: Archive artifact
         uses: actions/upload-artifact@v4
         with:
