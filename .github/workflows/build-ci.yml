@@ -6,7 +6,7 @@ permissions:
   contents: read
 
 jobs:
-  # === Linux (Ubuntu 20.04) ===
+  # === Linux (Ubuntu 24.04) ===
   linux64:
     runs-on: ubuntu-24.04
     steps:
@@ -26,3 +26,28 @@ jobs:
         with:
           name: Mednafen (Linux)
           path: dist/*
+
+  # === Windows (64-bit) ===
+  windows64:
+    runs-on: windows-latest
+    steps:
+      - name: Set up MinGW
+        uses: egor-tensin/setup-mingw@v2
+        with:
+          architecture: x86_64
+      - name: Add MinGW to PATH
+        run: echo "C:\\mingw64\\bin" >> $GITHUB_PATH
+      - uses: actions/checkout@v4
+      - name: Fetch submodules
+        run: git submodule update --init --recursive
+      - name: Configure
+        run: cmake -Bbuild -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-static" -DCMAKE_EXE_LINKER_FLAGS="-static"
+      - name: Build
+        run: cmake --build build
+      - name: Package artifact
+        run: mkdir dist && copy build\\mednafen.exe COPYING dist\\
+      - name: Archive artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mednafen (Windows)
+          path: dist\\*
