@@ -33,7 +33,7 @@ jobs:
 
   # === Windows (64-bit) ===
   windows64:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     steps:
       - name: Add MXE repository and install dependencies
         run: |
