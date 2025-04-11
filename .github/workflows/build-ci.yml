@@ -43,10 +43,8 @@ jobs:
           version: 12.2.0
       - name: Add MinGW to PATH
         run: echo "C:\\mingw64\\bin" >> $GITHUB_PATH
-      - name: Install Ninja
-        run: |
-          choco install ninja -y
-          echo "::add-path::C:\\ProgramData\\chocolatey\\bin"
+      - name: Ensure Ninja is in PATH
+        run: echo "C:\\ProgramData\\chocolatey\\bin" >> $GITHUB_PATH
       - uses: actions/checkout@v4
       - name: Fetch submodules
         run: git submodule update --init --recursive
@@ -62,7 +60,8 @@ jobs:
           -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_CXX_FLAGS="-static" \
           -DCMAKE_EXE_LINKER_FLAGS="-static" \
-          -DCMAKE_TOOLCHAIN_FILE=%CD%\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake
+          -DCMAKE_TOOLCHAIN_FILE=%CD%\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake \
+          -DCMAKE_MAKE_PROGRAM=C:/ProgramData/chocolatey/bin/ninja.exe
       - name: Build
         run: cmake --build build
       - name: Package artifact
