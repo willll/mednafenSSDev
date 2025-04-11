@@ -55,7 +55,7 @@ jobs:
           git clone https://github.com/xiph/flac.git
           cd flac
           mkdir build && cd build
-          cmake -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF ..
+          cmake -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DOGG_INCLUDE_DIR=C:/mingw64/include -DOGG_LIBRARY=C:/mingw64/lib/libogg.a ..
           mingw32-make
           mingw32-make install
       - name: Install vcpkg
