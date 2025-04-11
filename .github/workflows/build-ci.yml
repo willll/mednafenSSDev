@@ -54,7 +54,7 @@ jobs:
           .\vcpkg integrate install
           .\vcpkg install sdl2 zlib glew freeglut libflac libiconv --triplet x64-mingw-static
       - name: Configure
-        run: cmake -Bbuild -GNinja \
+        run: cmake -S . -B build -GNinja \
           -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_CXX_FLAGS="-static" \
           -DCMAKE_EXE_LINKER_FLAGS="-static" \
