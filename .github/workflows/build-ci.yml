@@ -33,39 +33,35 @@ jobs:
 
   # === Windows (64-bit) ===
   windows64:
-    runs-on: windows-latest
+    runs-on: ubuntu-22.04
     steps:
-      - name: Set up MinGW
-        uses: egor-tensin/setup-mingw@v2
-        with:
-          architecture: x64
-          static: 1
-          version: 12.2.0
-      - name: Add MinGW to PATH
-        run: echo "C:\\mingw64\\bin" >> $GITHUB_PATH
-      - name: Ensure Ninja is in PATH
-        run: echo "C:\\ProgramData\\chocolatey\\bin" >> $GITHUB_PATH
+      - name: Add MXE repository and install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y software-properties-common
+          sudo add-apt-repository "deb [arch=amd64] http://pkg.mxe.cc/repos/apt $(lsb_release -sc) main"
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake ninja-build \
+            mxe-x86-64-w64-mingw32.static-glew \
+            mxe-x86-64-w64-mingw32.static-flac \
+            mxe-x86-64-w64-mingw32.static-sdl2 \
+            mxe-x86-64-w64-mingw32.static-zlib \
+            mxe-x86-64-w64-mingw32.static-freeglut \
+            mxe-x86-64-w64-mingw32.static-libiconv 
       - uses: actions/checkout@v4
       - name: Fetch submodules
         run: git submodule update --init --recursive
-      - name: Install vcpkg
-        run: |
-          git clone https://github.com/microsoft/vcpkg.git
-          cd vcpkg
-          .\bootstrap-vcpkg.bat
-          .\vcpkg integrate install
-          .\vcpkg install sdl2 zlib glew freeglut libflac libiconv --triplet x64-mingw-static
       - name: Configure
-        run: cmake -S . -B build -GNinja \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DCMAKE_CXX_FLAGS="-static" \
-          -DCMAKE_EXE_LINKER_FLAGS="-static" \
-          -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake \
-          -DCMAKE_MAKE_PROGRAM=C:/ProgramData/chocolatey/bin/ninja.exe
+        run: cmake -S . -Bbuild -GNinja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DENABLE_DEV_BUILD=ON -DENABLE_DEBUGGER=ON \
+            -DCMAKE_CXX_FLAGS="-static" \
+            -DCMAKE_EXE_LINKER_FLAGS="-static" \
       - name: Build
         run: cmake --build build
       - name: Package artifact
-        run: mkdir dist && copy build\\mednafen.exe COPYING dist\\
+        run: mkdir dist && cp build/mednafen ./COPYING dist/
       - name: Archive artifact
         uses: actions/upload-artifact@v4
         with:
