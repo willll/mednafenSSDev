@@ -50,7 +50,7 @@ RUN apt-get update && \
 
 # install mxe
 RUN git clone --depth 1 https://github.com/mxe/mxe/ . && \
-    make -j8 bfd flac sdl2 zlib glew freeglut cmake libiconv MXE_USE_CCACHE= MXE_TARGETS='x86_64-w64-mingw32.static' && \
+    make -j8 bfd libiberty flac sdl2 zlib glew freeglut cmake libiconv MXE_USE_CCACHE= MXE_TARGETS='x86_64-w64-mingw32.static' && \
     rm logs .ccache pkg -rf
     
 

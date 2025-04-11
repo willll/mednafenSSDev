@@ -398,6 +398,12 @@ if (BFD_LIBRARY)
     set(OS_LIBS ${OS_LIBS} ${BFD_LIBRARY})
 endif()
 
+if (WIN32)
+    find_library(LIBIBERTY_LIBRARIES NAMES iberty)
+    set(OS_LIBS ${OS_LIBS} ${LIBIBERTY_LIBRARIES})
+endif()
+
+
 add_executable(${CMAKE_PROJECT_NAME} ${SRCS} ${DRIVERS} ${SYSTEMS} ${GDB_NALL})
 target_link_libraries(${CMAKE_PROJECT_NAME} ${SDL2_LIBRARIES} ${OPENGL_LIBRARY} ${FLAC_LINK_LIBRARIES} ${ZLIB_LIBRARIES} ${ALSA_LIBRARIES} ${Iconv_LIBRARIES} ${OS_LIBS} )
 target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -fsigned-char -fwrapv -fno-fast-math -fno-unsafe-math-optimizations -fno-aggressive-loop-optimizations  -Os -fvisibility=hidden )

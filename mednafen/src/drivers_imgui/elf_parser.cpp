@@ -3,6 +3,11 @@
 #include <cstdlib>
 
 #ifdef ELF_BFD
+// fix for mingw
+#undef PACKAGE
+#undef PACKAGE_VERSION
+#define PACKAGE "mingw_fix_bfd"
+#define PACKAGE_VERSION 0
 #include <bfd.h>
 struct ElfParser
 {
