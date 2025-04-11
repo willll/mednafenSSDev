@@ -72,31 +72,6 @@ int elf_parser_load_elf(char *filename)
     return true;
 }
 
-static bool is_address_in_elf(uint32_t adr)
-{
-    asection *section = parser.abfd->sections;
-    // disable bios
-    if (adr < 0x06000000)
-    {
-        return false;
-    }
-
-    while (section)
-    {
-        bfd_vma section_start = bfd_section_vma(section);
-        bfd_size_type section_size = bfd_section_size(section);
-
-        if (adr >= section_start && adr < (section_start + section_size))
-        {
-            return true;
-        }
-
-        section = section->next;
-    }
-
-    return false;
-}
-
 /* Look for an address in a section.  This is called via
    bfd_map_over_sections.  */
 static bfd_vma pc;
@@ -139,14 +114,10 @@ bool /*__attribute__((optimize("O0")))*/ elf_parser_adr2line(uint32_t adr, std::
             str += " in function " + std::string(functionname);
         }
     }
-    else
-    {
-        str = "No debug info for address 0x" + std::to_string(adr);
-    }
 
     return found;
 }
 #else
-int elf_parser_init(const char *filename) { return -1; }
+int elf_parser_load_elf(const char *filename) { return -1; }
 bool elf_parser_adr2line(uint32_t adr, std::string &line) { return false; }
 #endif
