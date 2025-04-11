@@ -38,9 +38,9 @@ jobs:
       - name: Add MXE repository and install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y software-properties-common wget
-          wget -qO - https://pkg.mxe.cc/repos/apt/gpg.key | sudo apt-key add -
-          sudo add-apt-repository "deb [arch=amd64] http://pkg.mxe.cc/repos/apt $(lsb_release -sc) main"
+          sudo apt-get install -y software-properties-common wget gpg
+          wget -qO - https://pkg.mxe.cc/repos/apt/gpg.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/mxe.gpg > /dev/null
+          echo "deb [arch=amd64] http://pkg.mxe.cc/repos/apt $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/mxe.list
           sudo apt-get update
           sudo apt-get install -y \
             cmake ninja-build \
