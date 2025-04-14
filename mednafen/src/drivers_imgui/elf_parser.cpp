@@ -106,6 +106,12 @@ find_address_in_section(bfd *abfd, asection *section, void *data)
 
 bool /*__attribute__((optimize("O0")))*/ elf_parser_adr2line(uint32_t adr, std::string &str)
 {
+    // no elf loaded
+    if (!parser.abfd)
+    {
+        return false;
+    }
+
     found = false;
     pc = adr;
     bfd_map_over_sections (parser.abfd, find_address_in_section, nullptr);
