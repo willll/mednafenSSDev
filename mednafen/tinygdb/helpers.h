@@ -1,10 +1,6 @@
 #pragma once
 #include <cstring>
 
-#if defined(PLATFORM_WINDOWS)
-#include "windows.h"
-#endif
-
 // ========== Chrono
 inline auto chrono_nanosecond() -> u64
 {

@@ -6,6 +6,7 @@
 
 #if defined(PLATFORM_WINDOWS)
 #include <ws2tcpip.h>
+#include "plat-windows.h"
 #else
 #include <sys/time.h>
 #include <sys/socket.h>
