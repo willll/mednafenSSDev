@@ -12,25 +12,6 @@ inline auto chrono_millisecond() -> u64 { return chrono_nanosecond() / 1'000'000
 
 // ========== String
 
-inline auto string_slice(std::string self, int offset = 0, int length = -1) -> std::string
-{
-  std::string result;
-  if (offset < 0)
-    offset = self.size() - abs(offset);
-  if (offset >= 0 && offset < self.size())
-  {
-    if (length < 0)
-      length = self.size() - offset;
-    if (length >= 0)
-    {
-      result.resize(length);
-      // memory::copy(result.get(), self.data() + offset, length);
-      memcpy(result.data(), self.data() + offset, length);
-    }
-  }
-  return result;
-}
-
 constexpr inline auto toBinary_(const char *s, u64 sum = 0) -> u64
 {
   return (
@@ -63,19 +44,6 @@ constexpr inline auto toHex_(const char *s, u64 sum = 0) -> u64
 
 //
 
-constexpr inline auto toBinary(const char *s) -> u64
-{
-  return (
-      *s == '0' && (*(s + 1) == 'B' || *(s + 1) == 'b') ? toBinary_(s + 2) : *s == '%' ? toBinary_(s + 1)
-                                                                                       : toBinary_(s));
-}
-
-constexpr inline auto toOctal(const char *s) -> u64
-{
-  return (
-      *s == '0' && (*(s + 1) == 'O' || *(s + 1) == 'o') ? toOctal_(s + 2) : toOctal_(s));
-}
-
 constexpr inline auto toHex(const char *s) -> u64
 {
   return (
@@ -104,12 +72,8 @@ constexpr inline auto toInteger(const char *s) -> s64
 
 //
 
-inline auto toReal(const char *s) -> f64
+inline auto hexByte(char *out, u8 value) -> void
 {
-  return atof(s);
-}
-
-inline auto hexByte(char* out, u8 value) -> void {
   out[0] = "0123456789ABCDEF"[value >> 4];
   out[1] = "0123456789ABCDEF"[value & 0xF];
 }
@@ -123,6 +87,7 @@ inline auto hex(u32 value, u32 size = 2, char fill = '0') -> std::string
   }
   return hexStr;
 }
+
 inline std::vector<std::string> string_split(const std::string &str, char delimiter)
 {
   std::vector<std::string> result;
@@ -141,9 +106,10 @@ inline std::vector<std::string> string_split(const std::string &str, char delimi
     }
   }
 
-  result.push_back(current); // dernière portion
+  result.push_back(current);
   return result;
 }
+
 // ========== Vector
 template <typename T>
 bool vector_contains(const std::vector<T> &vec, const T &value)
@@ -156,13 +122,4 @@ bool vector_contains(const std::vector<T> &vec, const T &value)
     }
   }
   return false;
-}
-
-// ========== Function
-
-// Reset
-template <typename T>
-inline auto reset(T &value) -> void
-{
-  value = T{};
 }

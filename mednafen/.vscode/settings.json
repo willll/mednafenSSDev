@@ -66,5 +66,11 @@
         "iostream": "cpp",
         "optional": "cpp"
     },
-    "cmake.ignoreCMakeListsMissing": true
+    "cmake.ignoreCMakeListsMissing": true,
+    "C_Cpp.files.exclude": {
+        "**/.vscode": true,
+        "**/.git": true,
+        "**/.vs": true,
+        "build/**": true,
+    }
 }

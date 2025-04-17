@@ -179,7 +179,7 @@ auto TinyGDBServer::processCommand(const std::string &cmd, bool &shouldReply) ->
   case 'G': // set all general registers
     if (hooks.regWriteGeneral)
     {
-      hooks.regWriteGeneral(string_slice(cmd, 1));
+      hooks.regWriteGeneral(cmd.substr(1));
       return "OK";
     }
     break;
