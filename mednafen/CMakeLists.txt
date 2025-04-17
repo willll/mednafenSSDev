@@ -9,7 +9,7 @@ include(CheckTypeSize)
 
 include_directories(${CMAKE_BINARY_DIR}) # config.h, trio etc ...
 include_directories(BEFORE "include")
-include_directories(BEFORE "ares")
+include_directories(BEFORE "tinygdb")
 
 
 # shared
@@ -354,6 +354,10 @@ set(GDB_NALL
     #ares/nall/tcptext/tcp-socket.cpp
     #ares/nall/tcptext/tcptext-server.cpp
     src/drivers_imgui/nall-gdb.cpp
+
+    tinygdb/tcp-socket.cpp
+    tinygdb/tcp-server.cpp
+    tinygdb/gdb.cpp
 )
 if (WIN32)
 set(GDB_NALL ${GDB_NALL} ares/nall/platform.cpp)

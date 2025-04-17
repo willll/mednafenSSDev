@@ -12,24 +12,13 @@
 #include "prompt.h"
 #include "video.h"
 
-#include "nall-gdb.h"
-
-// strange...
-#include <nall/stdint.hpp>
-#include <nall/string.hpp>
-#include <nall/chrono.hpp>
-#include <nall/vector.hpp>
-
-using namespace nall;
-#include <nall/gdb/server.cpp>
-#include <nall/tcptext/tcp-socket.cpp>
-#include <nall/tcptext/tcptext-server.cpp>
+#include "gdb.h"
 
 void med_gdb_report_pc(uint32_t pc)
 {
-    GDB::server.reportPC(pc);
+    server.reportPC(pc);
 
-    while (GDB::server.isHalted())
+    while (server.isHalted())
     {
         DebuggerFudge();
     }
@@ -37,7 +26,7 @@ void med_gdb_report_pc(uint32_t pc)
 
 void med_gdb_update()
 {
-    nall::GDB::server.updateLoop();
+    server.updateLoop();
 }
 
 extern uint32_t gdb_get_reg(int cpu_n, uint32_t i);
@@ -46,37 +35,38 @@ extern uint32_t gdb_mem_peek(uint32_t adr);
 
 void med_init_gdb()
 {
-    nall::GDB::server.reset();
+    server.reset();
 
-    GDB::server.hooks.regRead = [](u32 regIdx)
+    server.hooks.regRead = [](u32 regIdx)
     {
         return hex(gdb_get_reg(0, regIdx), 8, '0');
     };
 
-    GDB::server.hooks.regReadGeneral = []()
+    server.hooks.regReadGeneral = []()
     {
-        string res{};
-        for (auto i : range(24))
+        std::string res{};
+        // for (auto i : range(24))
+        for (int i = 0; i < 24; i++)
         {
-            res.append(GDB::server.hooks.regRead(i));
+            res.append(server.hooks.regRead(i));
         }
         return res;
     };
 
-    GDB::server.hooks.regWrite = [](u32 regIdx, u64 regValue) -> bool
+    server.hooks.regWrite = [](u32 regIdx, u64 regValue) -> bool
     {
         return false; // not impl
     };
 
-    GDB::server.hooks.read = [](u64 address, u32 byteCount) -> string
+    server.hooks.read = [](u64 address, u32 byteCount) -> std::string
     {
         address = (s32)address;
 
-        string res{};
+        std::string res{};
         res.resize(byteCount * 2);
-        char *resPtr = res.begin();
+        char *resPtr = (char*)res.c_str();
 
-        for (u32 i : range(byteCount))
+        for (u32 i = 0; i < byteCount; i++)
         {
             u8 val = gdb_mem_peek8(address++);
             hexByte(resPtr, val);
@@ -85,23 +75,23 @@ void med_init_gdb()
         return res;
     };
 
-    GDB::server.hooks.write = [](u64 address, vector<u8> data)
+    server.hooks.write = [](u64 address, std::vector<u8> data)
     {
         address = (s32)address;
         // not impl
     };
 
-    GDB::server.hooks.normalizeAddress = [](u64 address)
+    server.hooks.normalizeAddress = [](u64 address)
     {
         return address & 0x0FFF'FFFF;
     };
 
-    GDB::server.hooks.targetXML = []() -> string
+    server.hooks.targetXML = []() -> std::string
     {
         return "<target version=\"1.0\">"
                "<architecture>sh2</architecture>"
                "</target>";
     };
 
-    nall::GDB::server.open(43434, true);
+    server.open(43434, true);
 }
