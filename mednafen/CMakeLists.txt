@@ -359,9 +359,7 @@ set(GDB_NALL
     tinygdb/tcp-server.cpp
     tinygdb/gdb.cpp
 )
-if (WIN32)
-set(GDB_NALL ${GDB_NALL} ares/nall/platform.cpp)
-endif()
+
 
 # ================
 
