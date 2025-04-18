@@ -4,7 +4,7 @@
 #include <thread>
 #include <cstring>
 
-#if defined(PLATFORM_WINDOWS)
+#if defined(WIN32)
 #include <ws2tcpip.h>
 #include "plat-windows.h"
 #else
@@ -60,7 +60,7 @@ namespace
     {
         if (socket < 0)
             return;
-#if defined(PLATFORM_WINDOWS)
+#if defined(WIN32)
         ::closesocket(socket);
 #else
         ::close(socket);
@@ -75,6 +75,19 @@ auto TinySocket::getURL(u32 port, bool useIPv4) const -> std::string
 
 auto TinySocket::open(u32 port, bool useIPv4) -> bool
 {
+#ifdef WIN32
+    WSADATA wsa;
+    SOCKET s;
+    struct sockaddr_in server;
+
+    printf("\nInitialising Winsock...");
+    if (WSAStartup(MAKEWORD(2,2),&wsa) != 0)
+    {
+        printf("Failed. Error Code : %d",WSAGetLastError());
+        return false;
+    }
+#endif
+
     stopServer = false;
 
     auto url = getURL(port, useIPv4);
@@ -96,15 +109,15 @@ auto TinySocket::open(u32 port, bool useIPv4) -> bool
 #endif
 
 #if defined(SO_REUSEADDR) // BSD, Linux, OSX
-          setsockopt(fdServer, SOL_SOCKET, SO_REUSEADDR, &valueOn, sizeof(s32));
+          setsockopt(fdServer, SOL_SOCKET, SO_REUSEADDR, (const char*)&valueOn, sizeof(s32));
 #endif
 
 #if defined(SO_REUSEPORT) // BSD, OSX
-          setsockopt(fdServer, SOL_SOCKET, SO_REUSEPORT, &valueOn, sizeof(s32));
+          setsockopt(fdServer, SOL_SOCKET, SO_REUSEPORT, (const char*)&valueOn, sizeof(s32));
 #endif
 
 #if defined(TCP_NODELAY)
-          setsockopt(fdServer, IPPROTO_TCP, TCP_NODELAY, &valueOn, sizeof(s32));
+          setsockopt(fdServer, IPPROTO_TCP, TCP_NODELAY, (const char*)&valueOn, sizeof(s32));
 #endif
 
         if(!socketSetBlockingMode(fdServer, true)) {
@@ -112,9 +125,9 @@ auto TinySocket::open(u32 port, bool useIPv4) -> bool
         }
 
 #if defined(SO_RCVTIMEO)
-#if defined(PLATFORM_WINDOWS)
+#if defined(WIN32)
             DWORD rcvTimeMs = 1000 * RECEIVE_TIMEOUT_SEC;
-            setsockopt(fdServer, SOL_SOCKET, SO_RCVTIMEO, &rcvTimeMs, sizeof(rcvTimeMs));
+            setsockopt(fdServer, SOL_SOCKET, SO_RCVTIMEO, (const char*)&rcvTimeMs, sizeof(rcvTimeMs));
 #else
             struct timeval rcvtimeo;
             rcvtimeo.tv_sec  = RECEIVE_TIMEOUT_SEC;
@@ -212,7 +225,7 @@ auto TinySocket::open(u32 port, bool useIPv4) -> bool
 
       // send data
       if(localSendBuffer.size() > 0) {
-        auto bytesWritten = send(fdClient, localSendBuffer.data(), localSendBuffer.size(), 0);
+        auto bytesWritten = send(fdClient, (const char*)localSendBuffer.data(), localSendBuffer.size(), 0);
         if(bytesWritten < localSendBuffer.size()) {
           printf("Error sending data! (%s)\n", strerror(errno));
         }
@@ -243,7 +256,7 @@ auto TinySocket::open(u32 port, bool useIPv4) -> bool
       }
 
       // receive data from connected clients
-      s32 length = recv(fdClient, packet, TCP_BUFFER_SIZE, MSG_NOSIGNAL);
+      s32 length = recv(fdClient, (char*)packet, TCP_BUFFER_SIZE, MSG_NOSIGNAL);
       if(length > 0) {
         std::lock_guard guard{receiveBufferMutex};
         auto oldSize = receiveBuffer.size();
@@ -256,7 +269,7 @@ auto TinySocket::open(u32 port, bool useIPv4) -> bool
       } else if(length == 0) {
         disconnectClient();
       } else {
-#if defined(PLATFORM_WINDOWS)
+#if defined(WIN32)
         if (WSAGetLastError() != WSAETIMEDOUT) {
 #else
         if (errno != EAGAIN) {

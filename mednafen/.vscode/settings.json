@@ -64,7 +64,8 @@
         "sstream": "cpp",
         "stack": "cpp",
         "iostream": "cpp",
-        "optional": "cpp"
+        "optional": "cpp",
+        "*.in": "cpp"
     },
     "cmake.ignoreCMakeListsMissing": true,
     "C_Cpp.files.exclude": {

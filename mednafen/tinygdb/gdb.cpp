@@ -1,6 +1,6 @@
 #include "gdb.h"
-
 #include <inttypes.h>
+#include "plat-windows.h"
 
 namespace
 {

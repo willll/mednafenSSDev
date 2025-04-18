@@ -1,8 +1,9 @@
-#if defined(PLATFORM_WINDOWS)
+#if defined(WIN32)
+
 
 #include <winsock2.h>
 
-inline auto poll(struct pollfd fds[], unsigned long nfds, int timeout) -> int { return WSAPoll(fds, nfds, timeout); }
+#define MSG_NOSIGNAL 0
 
 inline auto usleep(unsigned int us) -> int
 {
