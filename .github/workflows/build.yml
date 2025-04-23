@@ -1,0 +1,36 @@
+name: Build Mednafen for Windows
+
+on:
+  push:
+    branches:
+      - main
+      - gdb
+  pull_request:
+
+jobs:
+  build-win32:
+    runs-on: ubuntu-latest
+
+    container:
+      image: registry.gitlab.com/ced2911/mednafen-saturn-dev:latest
+
+    steps:
+      - name: Checkout repository (with submodules)
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Create build directory
+        run: |
+          mkdir build
+          cd build
+          export PATH="/opt/mxe-w64/usr/bin/:$PATH"
+          x86_64-w64-mingw32.static-cmake ../mednafen -DWINDOWS=1
+          make
+          x86_64-w64-mingw32.static-strip Mednafen.exe -o ../Mednafen.exe
+
+      - name: Upload executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mednafen.exe
+          path: Mednafen.exe
