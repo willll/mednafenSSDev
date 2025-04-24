@@ -25,7 +25,7 @@ jobs:
           mkdir build
           cd build
           export PATH="/opt/mxe-w64/usr/bin/:$PATH"
-          x86_64-w64-mingw32.static-cmake ../mednafen -DWINDOWS=1
+          x86_64-w64-mingw32.static-cmake .. -DWINDOWS=1
           make
           x86_64-w64-mingw32.static-strip Mednafen.exe -o ../Mednafen.exe
 
