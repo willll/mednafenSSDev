@@ -63,3 +63,4 @@ confdefs.h
 conftest.cpp
 conftest.err
 
+build*/

@@ -31,6 +31,24 @@
 #include <mednafen/hash/md5.h>
 #include <mednafen/Time.h>
 
+#ifdef DBG_IMGUI
+#include "../drivers_imgui/nall-gdb.h"
+#include "../drivers_imgui/profiler.h"
+#define CPU_PROF_START(n, target)            \
+  {                                          \
+    dbg_profiler.cycle(n, timestamp); \
+    dbg_profiler.start(n, target);           \
+  }
+#define CPU_PROF_END(n, target)              \
+  {                                          \
+    dbg_profiler.cycle(n, timestamp); \
+    dbg_profiler.end(n, target);             \
+  }
+#else
+#define CPU_PROF_START(n, target) /** */
+#define CPU_PROF_END(n, target) /** */
+#endif
+
 #include <bitset>
 
 #include <trio/trio.h>
@@ -132,7 +150,7 @@ static int64 BackupRAM_SaveDelay;
 static int64 CartNV_SaveDelay;
 
 #define SH7095_EXT_MAP_GRAN_BITS 16
-static uintptr_t SH7095_FastMap[1U << (32 - SH7095_EXT_MAP_GRAN_BITS)];
+uintptr_t SH7095_FastMap[1U << (32 - SH7095_EXT_MAP_GRAN_BITS)];
 
 int32 SH7095_mem_timestamp;
 static uint32 SH7095_BusLock;
@@ -719,7 +737,10 @@ static INLINE int32 RunLoop_INLINE(EmulateSpecStruct* espec)
      DBG_SetEffTS(eff_ts);
      DBG_CPUHandler<0>();
     }
-
+#ifdef DBG_IMGUI
+    med_gdb_report_pc(CPU[0].PC);
+    dbg_profiler.cycle(0, CPU[0].timestamp); 
+#endif
     CPU[0].Step<0, EmulateICache, DebugMode>();
     CPU[0].DMA_BusTimingKludge();
 
@@ -737,6 +758,10 @@ static INLINE int32 RunLoop_INLINE(EmulateSpecStruct* espec)
       if(DebugMode)
        DBG_CPUHandler<1>();
 
+#ifdef DBG_IMGUI
+      med_gdb_report_pc(CPU[1].PC);
+      dbg_profiler.cycle(1, CPU[1].timestamp); 
+#endif
       CPU[1].Step<1, false, DebugMode>();
      }
     }
