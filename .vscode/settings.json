@@ -63,7 +63,15 @@
         "mutex": "cpp",
         "sstream": "cpp",
         "stack": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "optional": "cpp",
+        "*.in": "cpp"
     },
-    "cmake.ignoreCMakeListsMissing": true
+    "cmake.ignoreCMakeListsMissing": true,
+    "C_Cpp.files.exclude": {
+        "**/.vscode": true,
+        "**/.git": true,
+        "**/.vs": true,
+        "build/**": true,
+    }
 }
