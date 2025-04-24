@@ -1,0 +1,18 @@
+image: registry.gitlab.com/ced2911/mednafen-saturn-dev:latest
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+build-win32:
+    stage: build
+    script:
+        - mkdir build
+        - cd build
+        - export PATH="/opt/mxe-w64/usr/bin/:$PATH"
+        - x86_64-w64-mingw32.static-cmake ../mednafen -DWINDOWS=1
+        - make
+        - x86_64-w64-mingw32.static-strip Mednafen.exe -o ../Mednafen.exe
+    artifacts:
+        untracked: false
+        when: on_success
+        expire_in: 30 days
+        paths:
+          - Mednafen.exe
