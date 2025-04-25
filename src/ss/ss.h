@@ -120,6 +120,8 @@ namespace MDFN_IEN_SS
  MDFN_HIDE extern SH7095 CPU[2];	// for smpc.cpp
 
  MDFN_HIDE extern int32 SH7095_mem_timestamp;
+ #define SH7095_EXT_MAP_GRAN_BITS 16
+ MDFN_HIDE extern  uintptr_t SH7095_FastMap[1U << (32 - SH7095_EXT_MAP_GRAN_BITS)];
 
  void SS_RequestMLExit(void);
  void SS_RequestEHLExit(void);
