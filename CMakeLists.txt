@@ -398,6 +398,8 @@ find_library(BFD_LIBRARY NAMES bfd)
 if (BFD_LIBRARY)
     add_compile_definitions("ELF_BFD")
     set(OS_LIBS ${OS_LIBS} ${BFD_LIBRARY})
+elseif (UNIX AND NOT WIN32)
+    message(FATAL_ERROR "libbfd not found. Please install the binutils development package (e.g., 'binutils-dev' or 'binutils-devel').")
 endif()
 
 if (WIN32)
