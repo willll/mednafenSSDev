@@ -56,6 +56,10 @@
 /src/drivers_libxxx/Makefile
 /src/sexyal/Makefile
 /src/ss/Makefile
+confdefs.h
+conftest.cpp
+conftest.err
+
 build/
 buildw32/
 *~

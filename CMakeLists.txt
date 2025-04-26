@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-project(mednafen)
+project(Mednafen)
 
 include(FindPkgConfig)
 include(CheckTypeSize)
@@ -9,19 +9,11 @@ include(CheckTypeSize)
 
 include_directories(${CMAKE_BINARY_DIR}) # config.h, trio etc ...
 include_directories(BEFORE "include")
-include_directories(BEFORE "ares")
+include_directories(BEFORE "tinygdb")
 
 
 # shared
 add_compile_definitions("HAVE_CONFIG_H")
-add_compile_definitions("LSB_FIRST")
-add_compile_definitions("MDFN_PSS_STYLE")
-add_compile_definitions("MDFN_ENABLE_DEV_BUILD")
-add_compile_definitions("WANT_DEBUGGER")
-add_compile_definitions(PACKAGE="mednafen")
-add_compile_definitions(LOCALEDIR="/usr/local/share/locale/")
-add_compile_definitions(MEDNAFEN_VERSION="1.32.1")
-add_compile_definitions(MEDNAFEN_VERSION_NUMERIC=0x00103201)
 
 # win32 config
 if (WIN32)
@@ -32,6 +24,8 @@ endif()
 
 set(CMAKE_CXX_FLAGS -fdiagnostics-color=always)
 set(CMAKE_C_FLAGS -fdiagnostics-color=always)
+
+
 
 set(SRCS 
 "${CMAKE_BINARY_DIR}/config.h"
@@ -131,7 +125,6 @@ set(SRCS
     src/cdrom/CDAFReader.cpp
     src/cdrom/CDAFReader_Vorbis.cpp
     src/cdrom/CDAFReader_MPC.cpp
-    #src/cdrom/CDAFReader_FLAC.cpp
     src/cdrom/CDAFReader_PCM.cpp
     src/cdrom/scsicd.cpp
     #mpdec
@@ -277,6 +270,8 @@ set(DRIVERS_UI
     # linux
     # wip
     src/drivers_imgui/med_imgui.cpp
+    src/drivers_imgui/profiler.cpp
+    src/drivers_imgui/elf_parser.cpp
 )
 set(DRIVERS ${DRIVERS_UI}
     src/drivers_imgui/imgui/backends/imgui_impl_opengl2.cpp
@@ -306,6 +301,7 @@ else()
     )
 endif()
 
+add_compile_definitions("DBG_IMGUI")
 include_directories(BEFORE "src/drivers_imgui/imgui" "src/drivers_imgui/imgui/backends")
 # ================
 
@@ -358,10 +354,12 @@ set(GDB_NALL
     #ares/nall/tcptext/tcp-socket.cpp
     #ares/nall/tcptext/tcptext-server.cpp
     src/drivers_imgui/nall-gdb.cpp
+
+    tinygdb/tcp-socket.cpp
+    tinygdb/tcp-server.cpp
+    tinygdb/gdb.cpp
 )
-if (WIN32)
-set(GDB_NALL ${GDB_NALL} ares/nall/platform.cpp)
-endif()
+
 
 # ================
 
@@ -375,23 +373,38 @@ set(SYSTEMS ${SATURN} ${SASPLAY} src/demo/demo.cpp src/cdplay/cdplay.cpp)
 pkg_search_module(SDL2 REQUIRED sdl2)
 include_directories(${SDL2_INCLUDE_DIRS})
 pkg_search_module(FLAC REQUIRED flac)
-#pkg_search_module(ALSA REQUIRED alsa)
 
 find_package(OpenGL REQUIRED)
+find_package(ZLIB REQUIRED)
 find_package(ZLIB REQUIRED)
 
 
 set(OS_LIBS )
 # Linux
 if (UNIX)
-    pkg_search_module(ALSA REQUIRED alsa)
+
+pkg_search_module(ALSA REQUIRED alsa)
 endif()
 
 if (WIN32)
 set(BUILD_SHARED_LIBS OFF)
 
-    find_package(Iconv  REQUIRED)
-    set(OS_LIBS ${OS_LIBS} ws2_32 dinput -static -mconsole)
+find_package(Iconv  REQUIRED)
+set(OS_LIBS ${OS_LIBS} ws2_32 dinput -static -mconsole)
+endif()
+
+# elf/bfd
+find_library(BFD_LIBRARY NAMES bfd)
+if (BFD_LIBRARY)
+    add_compile_definitions("ELF_BFD")
+    set(OS_LIBS ${OS_LIBS} ${BFD_LIBRARY})
+elseif (UNIX AND NOT WIN32)
+    message(FATAL_ERROR "libbfd not found. Please install the binutils development package (e.g., 'binutils-dev' or 'binutils-devel').")
+endif()
+
+if (WIN32)
+    find_library(LIBIBERTY_LIBRARIES NAMES iberty)
+    set(OS_LIBS ${OS_LIBS} ${LIBIBERTY_LIBRARIES})
 endif()
 
 

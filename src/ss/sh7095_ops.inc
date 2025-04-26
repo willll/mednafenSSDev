@@ -1448,6 +1448,7 @@ switch(Pipe_ID >> 24)
  // BF 
  //
  BEGIN_OP_FUDGEIF(BF)
+ 	//if (!GetT())  CPU_PROF_START(which, PC + ((uint32)(int8)instr << 1));
 	CondRelBranch(!GetT(), (uint32)(int8)instr << 1);
  END_OP
 
@@ -1456,6 +1457,7 @@ switch(Pipe_ID >> 24)
  // BF/S 
  //
  BEGIN_OP_FUDGEIF(BF_S)
+ 	//if (!GetT())  CPU_PROF_START(which, PC + ((uint32)(int8)instr << 1));
 	CondRelDelayBranch(!GetT(), (uint32)(int8)instr << 1);
  END_OP
 
@@ -1464,6 +1466,7 @@ switch(Pipe_ID >> 24)
  // BT 
  //
  BEGIN_OP_FUDGEIF(BT)
+ 	//if (GetT())  CPU_PROF_START(which, PC + ((uint32)(int8)instr << 1));
 	CondRelBranch(GetT(), (uint32)(int8)instr << 1);
  END_OP
 
@@ -1472,6 +1475,7 @@ switch(Pipe_ID >> 24)
  // BT/S 
  //
  BEGIN_OP_FUDGEIF(BT_S)
+	//if (GetT())  CPU_PROF_START(which, PC + ((uint32)(int8)instr << 1));
 	CondRelDelayBranch(GetT(), (uint32)(int8)instr << 1);
  END_OP
 
@@ -1480,6 +1484,7 @@ switch(Pipe_ID >> 24)
  // BRA 
  //
  BEGIN_OP_DLYIDIF(BRA)
+ 	//CPU_PROF_START(which, PC + ((uint32)sign_x_to_s32(12, instr) << 1));
 	UCRelDelayBranch((uint32)sign_x_to_s32(12, instr) << 1);
  END_OP
 
@@ -1488,6 +1493,7 @@ switch(Pipe_ID >> 24)
  // BRAF Rm
  //
  BEGIN_OP_DLYIDIF(BRAF_REG)
+ 	//CPU_PROF_START(which, PC + R[instr_nyb2]);
 	UCRelDelayBranch(R[instr_nyb2]);
  END_OP
 
@@ -1497,7 +1503,8 @@ switch(Pipe_ID >> 24)
  //
  BEGIN_OP_DLYIDIF(BSR)
 	PR = PC;
-
+	
+	CPU_PROF_START(which, PC + ((uint32)sign_x_to_s32(12, instr) << 1));
 	UCRelDelayBranch((uint32)sign_x_to_s32(12, instr) << 1);
  END_OP
 
@@ -1507,7 +1514,8 @@ switch(Pipe_ID >> 24)
  //
  BEGIN_OP_DLYIDIF(BSRF_REG)
 	PR = PC;
-
+	
+	CPU_PROF_START(which, PC + R[instr_nyb2]);
 	UCRelDelayBranch(R[instr_nyb2]);
  END_OP
 
@@ -1516,6 +1524,7 @@ switch(Pipe_ID >> 24)
  // JMP @Rm
  //
  BEGIN_OP_DLYIDIF(JMP_REGINDIR)
+ //	CPU_PROF_START(which, R[instr_nyb2]);
 	UCDelayBranch(R[instr_nyb2]);
  END_OP
 
@@ -1526,6 +1535,7 @@ switch(Pipe_ID >> 24)
  BEGIN_OP_DLYIDIF(JSR_REGINDIR)
 	PR = PC;
 
+	CPU_PROF_START(which, R[instr_nyb2]);
 	UCDelayBranch(R[instr_nyb2]);
  END_OP
 
@@ -1534,6 +1544,7 @@ switch(Pipe_ID >> 24)
  // RTS 
  //
  BEGIN_OP_DLYIDIF(RTS)
+ 	CPU_PROF_END(which, PR);
 	UCDelayBranch(PR);
  END_OP
 
@@ -1675,7 +1686,7 @@ switch(Pipe_ID >> 24)
 	RecalcPendingIntPEX();
 
 	timestamp++;
-
+	//CPU_PROF_START(which, opexec_new_PC);
 	DelayBranch(opexec_new_PC);
  END_OP
 
@@ -1834,6 +1845,7 @@ switch(Pipe_ID >> 24)
 
 	PC -= 2;
 	Exception(EXCEPTION_TRAP, (uint8)instr, opexec_new_PC)
+	//CPU_PROF_START(which, opexec_new_PC);
 	Branch(false, opexec_new_PC);
  END_OP
 
@@ -1852,6 +1864,7 @@ switch(Pipe_ID >> 24)
 
 	PC -= 4;
 	Exception(EXCEPTION_ILLINSTR, VECNUM_ILLINSTR, opexec_new_PC);
+	//CPU_PROF_START(which, opexec_new_PC);
 	Branch(false, opexec_new_PC);
  END_OP
 
@@ -1865,6 +1878,7 @@ switch(Pipe_ID >> 24)
 
 	PC -= 2;
 	Exception(EXCEPTION_ILLSLOT, VECNUM_ILLSLOT, opexec_new_PC);
+	//CPU_PROF_START(which, opexec_new_PC);
 	Branch(false, opexec_new_PC);
  END_OP
 
@@ -1990,6 +2004,7 @@ switch(Pipe_ID >> 24)
 	//
 	//
 	//
+	//CPU_PROF_START(which, opexec_new_PC);
 	Branch(false, opexec_new_PC);
  END_OP
 
