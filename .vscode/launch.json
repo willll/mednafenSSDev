@@ -2,20 +2,51 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "(gdb) w32",
+      "type": "cppdbg",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/build/",
+      "program": "~/tmp/SaturnRingLib/Tests/BuildDrop/UTs.elf",
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb-multiarch",
+      "miDebuggerServerAddress": "localhost:43434",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        },
+        {
+          "description": "Set SH2 mode",
+          "text": "-gdb-set architecture sh2",
+          "ignoreFailures": true
+        }
+      ]
+    },
+    {
+      "name": "(gdb) Pipe Attach",
+      "type": "gdb",
+      "request": "attach",
+      "executable": "~/tmp/SaturnRingLib/Tests/BuildDrop/UTs.elf",
+      "target": "127.0.0.1:43434",
+      "remote": true,
+      "cwd": "${workspaceFolder}/build",
+      "gdbpath": "/usr/bin/gdb-multiarch",
+    },
+    {
       "type": "cppdbg",
       "request": "launch",
       "name": "Launch mednafen",
       "program": "${workspaceFolder}/build/Mednafen",
       "args": [
         "-elf",
-        "~/smsplus.elf",
+        "~/tmp/SaturnRingLib/Tests/BuildDrop/UTs.elf",
         "-force_module",
         "ss",
-        "~/smsplus.cue",
+        "~/tmp/SaturnRingLib/Tests/BuildDrop/UTs.cue",
       ],
       "cwd": "${workspaceFolder}/build",
       "preLaunchTask": "make"
     },
-    
   ]
 }
