@@ -16,6 +16,16 @@ Run the following commands:
 make
 ```
 
+or
+
+```bash
+mkdir build
+cd build
+export PATH="/opt/mxe-w64/usr/bin/:$PATH"
+x86_64-w64-mingw32.static-cmake .. -DWINDOWS=1 -DMDFN_ENABLE_DEV_BUILD=1 -DWANT_DEBUGGER=1
+make
+```
+
 ## How to Configure `mednafen.cfg`
 
 To enable the expansion cart, add the following line to your `mednafen.cfg` file:
