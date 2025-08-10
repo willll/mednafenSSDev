@@ -184,6 +184,11 @@ static void _med_imgui_render_logs()
 static void _med_imgui_render_profiler()
 {
     {
+        if (ImGui::Button("Reset Profiler")) {
+            dbg_profiler.reset();
+        }
+    }
+    {
         if (ImGui::BeginTable("cpu_perf", 3, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg))
         {
             ImGui::TableSetupColumn("line", ImGuiTableColumnFlags_WidthStretch);
@@ -194,7 +199,7 @@ static void _med_imgui_render_profiler()
         }
         ImGui::EndTable();
 
-        dbg_profiler.reset();
+        //dbg_profiler.reset();
     }
 }
 
@@ -277,8 +282,8 @@ __attribute__((optimize("O0"))) void med_imgui_render_start()
     ImGui::NewFrame();
     ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 
-    bool show_demo_window = true;
-    //ImGui::ShowDemoWindow(&show_demo_window);
+    bool show_demo_window = false;
+    ImGui::ShowDemoWindow(&show_demo_window);
     /*
     if (ImGui::BeginMainMenuBar())
     {
