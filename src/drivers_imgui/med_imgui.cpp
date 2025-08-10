@@ -10,6 +10,7 @@
 #include "imgui_impl_opengl2.h"
 
 #include "med_imgui.h"
+#include "med_imgui_logs.h"
 #include "debugui.h"
 
 #include "profiler.h"
@@ -145,6 +146,33 @@ void _med_imgui_copy_texture(GLuint sourceTexture, GLuint destinationTexture)
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+// Assuming you have a buffer of logs
+std::string logBuffer;
+
+// Function to add a log to the buffer
+void med_imgui_render_logs_addLog(const char* log) {
+    logBuffer.append(log);
+}
+
+// Example function to render the logs window
+static void _med_imgui_render_logs()
+{
+    // Simple console window with logs
+    static bool show_logs = true;
+    if (show_logs) {
+        ImGui::Begin("Logs", &show_logs);
+        ImGui::BeginChild("LogsChild");
+
+        // Display the entire log buffer
+        ImGui::Text("%s", logBuffer.c_str());
+
+        // Optionally, you might want to scroll to the bottom when new logs are added
+        ImGui::SetScrollHereY(1.0f);
+        ImGui::EndChild();
+        ImGui::End();
+    }
+}
+
 static void _med_imgui_render_profiler()
 {
     {
@@ -242,7 +270,7 @@ __attribute__((optimize("O0"))) void med_imgui_render_start()
     ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 
     bool show_demo_window = true;
-    ImGui::ShowDemoWindow(&show_demo_window);
+    //ImGui::ShowDemoWindow(&show_demo_window);
     /*
     if (ImGui::BeginMainMenuBar())
     {
@@ -293,9 +321,17 @@ __attribute__((optimize("O0"))) void med_imgui_render_start()
     }
     ImGui::End();
 
+    // draw profiler
     if (ImGui::Begin("Profiler"))
     {
         _med_imgui_render_profiler();
+    }
+    ImGui::End();
+
+    // draw Logs
+    if (ImGui::Begin("Logs"))
+    {
+        _med_imgui_render_logs();
     }
     ImGui::End();
 

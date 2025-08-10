@@ -21,6 +21,7 @@
 
 #include "common.h"
 #include "debug.h"
+#include <mednafen/drivers_imgui/med_imgui_logs.h>
 
 namespace MDFN_IEN_SS
 {
@@ -48,6 +49,7 @@ static void Debug_RW_DB(uint32 A, uint16* DB)
     {
      fputc(*c, stdout);
      fflush(stdout);
+     med_imgui_render_logs_addLog(c);
     }
 #endif
    }

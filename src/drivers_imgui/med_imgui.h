@@ -6,3 +6,4 @@ void med_imgui_kill();
 void med_imgui_render_start();
 void med_imgui_render_end();
 void med_imgui_process_event(SDL_Event *event);
+void med_imgui_render_logs_addLog(const char* log);
