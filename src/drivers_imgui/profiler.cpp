@@ -5,10 +5,11 @@
 #include <algorithm>
 #include <unordered_map>
 #include "profiler.h"
+#include <mutex>
 
 DBGProfiler dbg_profiler;
 
-typedef struct
+struct profile_item_t
 {
     uint32_t address;
     uint64_t total_cycles_count;
@@ -19,6 +20,11 @@ typedef struct
     uint64_t cycles_start;
     uint64_t cycles_end;
 
+    profile_item_t()
+        : address(0), total_cycles_count(0), total_call_count(0), frame_call_count(0), frame_cycles_count(0), cycles_start(0), cycles_end(0)
+    {
+    }
+
     void resetFrame()
     {
         this->frame_call_count = 0;
@@ -28,16 +34,33 @@ typedef struct
             this->frame_cycles_count = 0;
         }
     }
-} profile_item_t;
 
-struct stack_item_t {
-    stack_item_t(uint32_t a, uint32_t c): adr(a), cycle_start(c) {}
+    void reset()
+    {
+        this->total_cycles_count = 0;
+        this->total_call_count = 0;
+        this->frame_call_count = 0;
+        this->frame_cycles_count = 0;
+        this->cycles_start = 0;
+        this->cycles_end = 0;
+    }
+};
+
+struct stack_item_t
+{
+    explicit stack_item_t(uint32_t a, uint64_t c) : adr(a), cycle_start(c) {}
     uint32_t adr;
-    uint32_t cycle_start;
-} ;
+    uint64_t cycle_start;
+
+    void resetCycle()
+    {
+        this->cycle_start = 0;
+    }
+};
 
 static std::stack<stack_item_t> call_stack;
 static std::unordered_map<uint32_t, profile_item_t> profile_stack;
+static std::mutex profiler_mutex; // Add this line
 
 void DBGProfiler::init()
 {
@@ -46,12 +69,18 @@ void DBGProfiler::init()
 
 void DBGProfiler::reset()
 {
+    std::lock_guard<std::mutex> lock(profiler_mutex);
     //  profile_stack.clear();
+    for (auto &data : profile_stack)
+    {
+        data.second.reset();
+        // data.second.resetFrame();
+    }
 }
 
 void DBGProfiler::start(int cpu_n, uint32_t address)
 {
-
+    std::lock_guard<std::mutex> lock(profiler_mutex);
     call_stack.push(stack_item_t(address, cycles[cpu_n]));
     profile_stack[address].address = address;
     profile_stack[address].cycles_start = cycles[cpu_n];
@@ -61,9 +90,9 @@ void DBGProfiler::start(int cpu_n, uint32_t address)
 
 __attribute__((optimize("O0"))) void DBGProfiler::end(int cpu_n, uint32_t pc)
 {
+    std::lock_guard<std::mutex> lock(profiler_mutex);
     stack_item_t stack = call_stack.top();
     int64_t d = cycles[cpu_n] - stack.cycle_start;
-
 
     profile_stack[stack.adr].total_cycles_count += d;
     profile_stack[stack.adr].frame_cycles_count += d;
@@ -74,6 +103,7 @@ __attribute__((optimize("O0"))) void DBGProfiler::end(int cpu_n, uint32_t pc)
 
 void DBGProfiler::frame()
 {
+    std::lock_guard<std::mutex> lock(profiler_mutex);
     if (cb)
     {
         std::vector<std::pair<uint32_t, profile_item_t>> vec;
@@ -91,8 +121,4 @@ void DBGProfiler::frame()
             cb(data.second.address, data.second.frame_cycles_count, data.second.frame_call_count);
         }
     }
-    // for (auto &data : profile_stack)
-    // {
-    //     data.second.resetFrame();
-    // }
 }
