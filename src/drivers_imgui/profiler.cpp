@@ -64,17 +64,32 @@ static std::mutex profiler_mutex; // Add this line
 
 void DBGProfiler::init()
 {
+    reset();
     // call_stack
 }
 
 void DBGProfiler::reset()
 {
     std::lock_guard<std::mutex> lock(profiler_mutex);
-    //  profile_stack.clear();
     for (auto &data : profile_stack)
     {
         data.second.reset();
         // data.second.resetFrame();
+    }
+    std::stack<stack_item_t> temp_stack;
+    while (!call_stack.empty())
+    {
+        stack_item_t item = call_stack.top();
+        call_stack.pop();
+        item.resetCycle();
+        temp_stack.push(item);
+    }
+
+    // Swap the stacks
+    while (!temp_stack.empty())
+    {
+        call_stack.push(temp_stack.top());
+        temp_stack.pop();
     }
 }
 
