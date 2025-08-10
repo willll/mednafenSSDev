@@ -147,11 +147,17 @@ void _med_imgui_copy_texture(GLuint sourceTexture, GLuint destinationTexture)
 }
 
 // Assuming you have a buffer of logs
-std::string logBuffer;
+std::vector<std::string> logBuffer;
 
 // Function to add a log to the buffer
-void med_imgui_render_logs_addLog(const char* log) {
-    logBuffer.append(log);
+void med_imgui_render_logs_addLog(const unsigned char* log) {
+    static std::string logLine;
+    if (*log == '\n') {
+        logBuffer.push_back(logLine);
+        logLine.clear();
+    } else {
+        logLine += *log;
+    }
 }
 
 // Example function to render the logs window
@@ -164,7 +170,9 @@ static void _med_imgui_render_logs()
         ImGui::BeginChild("LogsChild");
 
         // Display the entire log buffer
-        ImGui::Text("%s", logBuffer.c_str());
+        for (const auto& log : logBuffer) {
+            ImGui::Text("%s", log.c_str());
+        }
 
         // Optionally, you might want to scroll to the bottom when new logs are added
         ImGui::SetScrollHereY(1.0f);

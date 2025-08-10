@@ -41,7 +41,7 @@ static void Debug_RW_DB(uint32 A, uint16* DB)
    if(A == 0x04001000)
    {
 #ifdef MDFN_ENABLE_DEV_BUILD
-    const char * c = (const char *)DB;
+    const unsigned char * c = (const unsigned char *)DB;
 
     c++;
 

@@ -1,3 +1,3 @@
 #pragma once
 
-void med_imgui_render_logs_addLog(const char* log);
+void med_imgui_render_logs_addLog(const unsigned char* log);
