@@ -32,21 +32,26 @@
 #include <mednafen/Time.h>
 
 #ifdef DBG_IMGUI
-#include "../drivers_imgui/nall-gdb.h"
-#include "../drivers_imgui/profiler.h"
-#define CPU_PROF_START(n, target)            \
-  {                                          \
-    dbg_profiler.cycle(n, timestamp); \
-    dbg_profiler.start(n, target);           \
-  }
-#define CPU_PROF_END(n, target)              \
-  {                                          \
-    dbg_profiler.cycle(n, timestamp); \
-    dbg_profiler.end(n, target);             \
-  }
+  #include "../drivers_imgui/nall-gdb.h"
+  #include "../drivers_imgui/profiler.h"
+  #define CPU_PROF_START(n, target)     \
+    {                                   \
+      dbg_profiler.cycle(n, timestamp); \
+      dbg_profiler.start(n, target);    \
+    }
+  #define CPU_PROF_END(n, target)       \
+    {                                   \
+      dbg_profiler.cycle(n, timestamp); \
+      dbg_profiler.end(n, target);      \
+    }
+    #define CPU_PROF_RESET(n, target)       \
+    {                                   \
+      dbg_profiler.reset(); \
+      dbg_profiler.end(n, target);      \
+    }
 #else
-#define CPU_PROF_START(n, target) /** */
-#define CPU_PROF_END(n, target) /** */
+  #define CPU_PROF_START(n, target) /** */
+  #define CPU_PROF_END(n, target)   /** */
 #endif
 
 #include <bitset>
