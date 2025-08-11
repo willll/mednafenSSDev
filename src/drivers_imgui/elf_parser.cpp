@@ -28,6 +28,9 @@ struct ElfParser
             free(syms);
         }
     }
+
+    ElfParser(const ElfParser&) = delete; // Disable copy constructor
+    ElfParser& operator=(const ElfParser&) = delete; // Disable copy assignment
 };
 
 // Déclaration de l'instance statique de ElfParser
@@ -40,13 +43,13 @@ int elf_parser_load_elf(char *filename)
 
     if (!parser.abfd)
     {
-        printf("Failed to open %s\n", filename);
+        std::cerr << "[ERR] :" << "Failed to open " << filename << std::endl;
         return -1;
     }
 
     if (!bfd_check_format(parser.abfd, bfd_object))
     {
-        printf("%s is not an object file\n", filename);
+        std::cerr << "[ERR] :" << filename << " is not an object file" << std::endl;
         bfd_close(parser.abfd);
         parser.abfd = nullptr;
         return -1;
@@ -55,7 +58,7 @@ int elf_parser_load_elf(char *filename)
     long storage = bfd_get_symtab_upper_bound(parser.abfd);
     if (storage < 0)
     {
-        printf("no debug info %s\n", filename);
+        std::cerr << "[ERR] :" << "no debug info " << filename << std::endl;
         bfd_close(parser.abfd);
         parser.abfd = nullptr;
         return -1;
@@ -66,7 +69,7 @@ int elf_parser_load_elf(char *filename)
 
     if (parser.symcount <= 0)
     {
-        printf("failed to read debug info %s\n", filename);
+        std::cerr << "[ERR] :" << "failed to read debug info " << filename << std::endl;
         free(parser.syms);
         parser.syms = nullptr;
         bfd_close(parser.abfd);
@@ -115,7 +118,6 @@ bool /*__attribute__((optimize("O0")))*/ elf_parser_adr2line(uint32_t adr, std::
     found = false;
     pc = adr;
     bfd_map_over_sections (parser.abfd, find_address_in_section, nullptr);
-
 
     if (found)
     {
