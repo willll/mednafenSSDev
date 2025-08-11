@@ -107,7 +107,7 @@ __attribute__((optimize("O0"))) void DBGProfiler::end(int cpu_n, uint32_t pc)
 {
     std::lock_guard<std::mutex> lock(profiler_mutex);
     stack_item_t stack = call_stack.top();
-    int64_t d = cycles[cpu_n] - stack.cycle_start;
+    uint64_t d = cycles[cpu_n] - stack.cycle_start;
 
     profile_stack[stack.adr].total_cycles_count += d;
     profile_stack[stack.adr].frame_cycles_count += d;

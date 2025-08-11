@@ -11,7 +11,7 @@ public:
     void end(int cpu_n, uint32_t pc);
     void reset();
     void frame();
-    void cycle(int n, uint32_t c) { cycles[n] = c; }
+    void cycle(int n, uint64_t c) { cycles[n] = c; }
     std::function<void(uint32_t adr, uint64_t cycles_count, uint64_t call_count)> cb{};
 
      // Add constructors
