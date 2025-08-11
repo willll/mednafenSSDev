@@ -1,7 +1,9 @@
 #ifndef __MDFN_TYPES_H
 #define __MDFN_TYPES_H
 
-#define __STDC_LIMIT_MACROS 1
+#ifndef __STDC_LIMIT_MACROS
+  #define __STDC_LIMIT_MACROS 1
+#endif
 #define _USE_MATH_DEFINES 1
 
 // Make sure this file is included BEFORE a few common standard C header files(stdio.h, errno.h, math.h, AND OTHERS, but this is not an exhaustive check, nor

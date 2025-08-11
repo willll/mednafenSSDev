@@ -764,8 +764,9 @@ static INLINE int32 RunLoop_INLINE(EmulateSpecStruct* espec)
        DBG_CPUHandler<1>();
 
 #ifdef DBG_IMGUI
-      med_gdb_report_pc(CPU[1].PC);
-      dbg_profiler.cycle(1, CPU[1].timestamp); 
+      // FIXME : 
+     // med_gdb_report_pc(CPU[1].PC);
+    //  dbg_profiler.cycle(1, CPU[1].timestamp); 
 #endif
       CPU[1].Step<1, false, DebugMode>();
      }

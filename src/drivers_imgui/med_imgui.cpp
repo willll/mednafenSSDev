@@ -1,4 +1,6 @@
 
+#include <inttypes.h>
+
 #include "main.h"
 #include "video.h"
 #include "opengl.h"
@@ -43,7 +45,7 @@ static void _med_imgui_debug_register_render()
     debugui_cpu_tab_t tab;
     ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
 
-    char *tabs[] = {
+    const char *tabs[] = {
         "Master SH2",
         "Slave SH2"};
 
@@ -62,7 +64,7 @@ static void _med_imgui_debug_register_render()
                     ImGui::TableNextRow();
 
                     ImGui::TableSetColumnIndex(0);
-                    ImGui::Text(tab.regs[row].name);
+                    ImGui::Text("%s", tab.regs[row].name);
                     ImGui::TableSetColumnIndex(1);
                     ImGui::Text("%08x", tab.regs[row].value);
                 }
@@ -80,7 +82,7 @@ static void _med_imgui_dev_register_render()
     debugui_reg_tab_t tab;
     ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
 
-    char *tabs[] = {
+    const char *tabs[] = {
         "VDP2 Common"};
 
     if (ImGui::BeginTabBar("Registers", tab_bar_flags))
@@ -103,7 +105,7 @@ static void _med_imgui_dev_register_render()
                     ImGui::Text("%s", tab.regs[row].name);
 
                     ImGui::TableNextColumn();
-                    ImGui::Text(tab.regs[row].dec.c_str());
+                    ImGui::Text("%s", tab.regs[row].dec.c_str());
 
                     ImGui::TableNextColumn();
                     ImGui::Text("%04x", tab.regs[row].value);
@@ -181,12 +183,17 @@ static void _med_imgui_render_logs()
     }
 }
 
+
 static void _med_imgui_render_profiler()
 {
     {
-        if (ImGui::Button("Reset Profiler")) {
+        if (ImGui::Button("Reset")) {
             dbg_profiler.reset();
         }
+        // ImGui::SameLine(); 
+        // if (ImGui::Button("Pause")) {
+        //     MDFN_IEN_SS::SS_Toggle();
+        // }
     }
     {
         if (ImGui::BeginTable("cpu_perf", 3, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg))
@@ -195,6 +202,26 @@ static void _med_imgui_render_profiler()
             ImGui::TableSetupColumn("# cycles", ImGuiTableColumnFlags_WidthFixed);
             ImGui::TableSetupColumn("# call", ImGuiTableColumnFlags_WidthFixed);
             ImGui::TableHeadersRow();
+
+            // if (ImGui::TableGetSortSpecs())
+            // {
+            //     ImGuiTableSortSpecs *sortSpecs = ImGui::TableGetSortSpecs();
+            //     int sortColumn = -1;
+            //     bool sortAscending = true;
+
+            //     for (int i = 0; i < sortSpecs->SpecsCount; i++)
+            //     {
+            //         // ImGuiTableColumnSortSpecs *spec = &sortSpecs->Specs[i];
+            //         // if (spec->ColumnUserID == 0)
+            //         // { // Assuming 0 as the ID for your sortable column
+            //         //     sortColumn = spec->ColumnIndex;
+            //         //     sortAscending = (spec->SortOrder == 0);
+            //         //     SortTable(rows, sortColumn, sortAscending);
+            //         //     break;
+            //         // }
+            //     }
+            // }
+
             dbg_profiler.frame();
         }
         ImGui::EndTable();
@@ -213,15 +240,15 @@ static void _med_imgui_render_profiler_item(uint32_t adr, uint64_t cycles_count,
     ImGui::TableNextColumn();
     std::string line;
     if (elf_parser_adr2line(adr, line))
-        ImGui::Text(line.c_str());
+        ImGui::Text("%s", line.c_str());
     else
-        ImGui::Text("%08x", adr);
+        ImGui::Text("%#08x", adr);
 
     ImGui::TableNextColumn();
-    ImGui::Text("%llu", cycles_count);
+    ImGui::Text("%" PRIu64, cycles_count);
 
     ImGui::TableNextColumn();
-    ImGui::Text("%llu", call_count);
+    ImGui::Text("%" PRIu64, call_count);
 }
 
 void med_imgui_render_frame(const MDFN_Surface *src_surface, const MDFN_Rect *src_rect, const MDFN_Rect *dest_rect, const MDFN_Rect *original_src_rect, int InterlaceField, int UsingIP, int rotated)
@@ -387,8 +414,6 @@ void med_imgui_init(SDL_Window *_window, SDL_GLContext glcontext)
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Enable Docking
-
-    //
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
