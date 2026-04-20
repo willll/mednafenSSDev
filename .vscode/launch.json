@@ -2,6 +2,17 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "CMake: Launch Mednafen",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${command:cmake.launchTargetPath}",
+      "cwd": "${command:cmake.launchTargetDirectory}",
+      "args": [],
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "preLaunchTask": "CMake: build"
+    },
+    {
       "name": "(gdb) w32",
       "type": "cppdbg",
       "request": "launch",
@@ -43,10 +54,10 @@
         "~/tmp/SaturnRingLib/Tests/BuildDrop/UTs.elf",
         "-force_module",
         "ss",
-        "~/tmp/SaturnRingLib/Tests/BuildDrop/UTs.cue",
+        "~/tmp/SaturnRingLib/Tests/BuildDrop/UTs.cue"
       ],
       "cwd": "${workspaceFolder}/build",
-      "preLaunchTask": "make"
-    },
+      "preLaunchTask": "CMake: build"
+    }
   ]
 }

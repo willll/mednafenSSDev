@@ -23,7 +23,7 @@ RUN apt-get update && \
     gperf \
     intltool \
     libc6-dev-i386 \
-    libgdk-pixbuf-xlib-2.0-dev \
+    libgdk-pixbuf-2.0-dev \
     libltdl-dev \
     libgl-dev \
     libssl-dev \

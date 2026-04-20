@@ -10,6 +10,7 @@ include(CheckTypeSize)
 include_directories(${CMAKE_BINARY_DIR}) # config.h, trio etc ...
 include_directories(BEFORE "include")
 include_directories(BEFORE "tinygdb")
+include_directories(BEFORE ${CMAKE_BINARY_DIR}) # ensure generated config.h wins over include/config.h
 
 
 # shared

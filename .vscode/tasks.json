@@ -15,12 +15,11 @@
     },
     {
       "type": "shell",
-      "label": "configure",
-      "command": "./configure",
+      "label": "CMake: configure",
+      "command": "cmake",
       "args": [
-        "--enable-dev-build",
-        "--enable-debugger",
-        "LDFLAGS=-lpthread"
+        "--preset",
+        "debug"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
@@ -29,26 +28,78 @@
     },
     {
       "type": "shell",
-      "label": "make",
-      "command": "make",
+      "label": "CMake: build",
+      "command": "cmake",
       "args": [
-        "-j4"
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "Mednafen"
       ],
       "options": {
-        "cwd": "${workspaceFolder}/build"
+        "cwd": "${workspaceFolder}"
       },
-     // "dependsOn": ["configure"],
       "problemMatcher": ["$gcc"]
     },
     {
       "type": "shell",
       "label": "build",
-      "dependsOn": ["configure", "make"],
+      "dependsOn": ["CMake: configure", "CMake: build"],
       "dependsOrder": "sequence",
       "group": {
         "kind": "build",
         "isDefault": true
       },
+      "problemMatcher": []
+    },
+    {
+      "type": "shell",
+      "label": "Docker: build win32 image",
+      "command": "docker",
+      "args": [
+        "build",
+        "-t", "mednafen-win32-builder",
+        "--target", "runner",
+        "-f", ".gitlab/Dockerfile",
+        "."
+      ],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "type": "shell",
+      "label": "CMake: configure win32",
+      "command": "docker",
+      "args": [
+        "run", "--rm",
+        "-v", "${workspaceFolder}:/src",
+        "-w", "/src",
+        "mednafen-win32-builder",
+        "cmake", "--preset", "win32"
+      ],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "type": "shell",
+      "label": "CMake: build win32",
+      "command": "docker",
+      "args": [
+        "run", "--rm",
+        "-v", "${workspaceFolder}:/src",
+        "-w", "/src",
+        "mednafen-win32-builder",
+        "cmake", "--build", "--preset", "win32"
+      ],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "type": "shell",
+      "label": "build win32",
+      "dependsOn": ["CMake: configure win32", "CMake: build win32"],
+      "dependsOrder": "sequence",
       "problemMatcher": []
     }
   ]

@@ -1,0 +1,45 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 15,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "debug",
+      "displayName": "Debug",
+      "description": "Configure the workspace root into the existing build directory.",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "win32",
+      "displayName": "Win32 (MXE cross-compile via Docker)",
+      "description": "Cross-compile for x86_64 Windows using MXE inside the .gitlab/Dockerfile runner image.",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build-win32",
+      "toolchainFile": "${sourceDir}/cmake/toolchain-win32-mxe.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "debug",
+      "configurePreset": "debug",
+      "jobs": 4
+    },
+    {
+      "name": "win32",
+      "configurePreset": "win32",
+      "jobs": 4
+    }
+  ]
+}

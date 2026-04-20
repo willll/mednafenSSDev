@@ -1,5 +1,12 @@
 {
-    "cmake.sourceDirectory": "/home/will/tmp/mednafenSSDev/mednafen/src/mpcdec",
+    "cmake.sourceDirectory": "${workspaceFolder}",
+    "cmake.buildDirectory": "${workspaceFolder}/build",
+    "cmake.useCMakePresets": "always",
+    "cmake.defaultConfigurePreset": "debug",
+    "cmake.defaultBuildPreset": "debug",
+    "cmake.defaultBuildTarget": "Mednafen",
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+    "C_Cpp.default.compileCommands": "${workspaceFolder}/build/compile_commands.json",
     "files.associations": {
         "atomic": "cpp",
         "map": "cpp",
@@ -67,11 +74,10 @@
         "optional": "cpp",
         "*.in": "cpp"
     },
-    "cmake.ignoreCMakeListsMissing": true,
     "C_Cpp.files.exclude": {
         "**/.vscode": true,
         "**/.git": true,
         "**/.vs": true,
-        "build/**": true,
+        "build/**": true
     }
 }

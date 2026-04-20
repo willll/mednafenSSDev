@@ -1,7 +1,7 @@
 
-#include <inttypes.h>
-
 #include "main.h"
+
+#include <inttypes.h>
 #include "video.h"
 #include "opengl.h"
 
