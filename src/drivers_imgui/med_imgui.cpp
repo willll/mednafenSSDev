@@ -24,6 +24,33 @@ GLuint fb_tex_id;
 SDL_Window *window = NULL;
 static int med_init = 0;
 
+static float med_imgui_get_ui_scale()
+{
+    int ww = 0, wh = 0;
+    int dw = 0, dh = 0;
+    float scale = 1.0f;
+
+    SDL_GetWindowSize(window, &ww, &wh);
+    SDL_GL_GetDrawableSize(window, &dw, &dh);
+
+    if (ww > 0 && wh > 0 && dw > 0 && dh > 0)
+    {
+        const float sx = (float)dw / (float)ww;
+        const float sy = (float)dh / (float)wh;
+        scale = std::max(1.0f, std::max(sx, sy));
+    }
+
+    const int dindex = SDL_GetWindowDisplayIndex(window);
+    if (dindex >= 0)
+    {
+        float ddpi = 0.0f;
+        if (SDL_GetDisplayDPI(dindex, &ddpi, NULL, NULL) == 0 && ddpi > 0.0f)
+            scale = std::max(scale, ddpi / 96.0f);
+    }
+
+    return std::min(scale, 2.5f);
+}
+
 static void med_init_textures()
 {
     glGenTextures(1, &fb_tex_id);
@@ -48,6 +75,42 @@ static void _med_imgui_debug_register_render()
     const char *tabs[] = {
         "Master SH2",
         "Slave SH2"};
+
+    const bool game_loaded = (CurGame != nullptr);
+    const bool is_paused   = IsGameLoopPaused();
+
+    if (!game_loaded || !is_paused)
+        ImGui::BeginDisabled();
+    if (ImGui::Button("Play"))
+        SendCEventToGT(CEVT_EMU_RUN, NULL, NULL);
+    if (!game_loaded || !is_paused)
+        ImGui::EndDisabled();
+
+    ImGui::SameLine();
+
+    if (!game_loaded || is_paused)
+        ImGui::BeginDisabled();
+    if (ImGui::Button("Pause"))
+        SendCEventToGT(CEVT_EMU_PAUSE, NULL, NULL);
+    if (!game_loaded || is_paused)
+        ImGui::EndDisabled();
+
+    ImGui::SameLine();
+
+    if (!game_loaded)
+        ImGui::BeginDisabled();
+    if (ImGui::Button("Reset"))
+        SendCEventToGT(CEVT_EMU_RESET, NULL, NULL);
+    if (!game_loaded)
+        ImGui::EndDisabled();
+
+    ImGui::SameLine();
+    if (!game_loaded)
+        ImGui::TextDisabled("(no game)");
+    else if (is_paused)
+        ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.1f, 1.0f), "Paused");
+    else
+        ImGui::TextColored(ImVec4(0.2f, 0.9f, 0.2f, 1.0f), "Running");
 
     if (ImGui::BeginTabBar("Registers", tab_bar_flags))
     {
@@ -307,7 +370,9 @@ __attribute__((optimize("O0"))) void med_imgui_render_start()
     ImGui_ImplSDL2_NewFrame();
 
     ImGui::NewFrame();
+#ifdef IMGUI_HAS_DOCK
     ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
+#endif
 
     bool show_demo_window = false;
     ImGui::ShowDemoWindow(&show_demo_window);
@@ -413,10 +478,31 @@ void med_imgui_init(SDL_Window *_window, SDL_GLContext glcontext)
     (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
+#ifdef IMGUI_HAS_DOCK
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Enable Docking
+#endif
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
+    {
+        ImGuiStyle &style = ImGui::GetStyle();
+        ImVec4 *colors = style.Colors;
+
+        colors[ImGuiCol_Text] = ImVec4(0.98f, 0.98f, 0.98f, 1.00f);
+        colors[ImGuiCol_TextDisabled] = ImVec4(0.70f, 0.72f, 0.75f, 1.00f);
+        colors[ImGuiCol_WindowBg] = ImVec4(0.07f, 0.08f, 0.10f, 0.98f);
+        colors[ImGuiCol_ChildBg] = ImVec4(0.07f, 0.08f, 0.10f, 0.98f);
+        colors[ImGuiCol_PopupBg] = ImVec4(0.09f, 0.10f, 0.12f, 0.98f);
+    }
+
+    {
+        const float ui_scale = med_imgui_get_ui_scale();
+        if (ui_scale > 1.0f)
+        {
+            io.FontGlobalScale = ui_scale;
+            ImGui::GetStyle().ScaleAllSizes(ui_scale);
+        }
+    }
     // ImGui::StyleColorsLight();
 
     // Setup Platform/Renderer backends

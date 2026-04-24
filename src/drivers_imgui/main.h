@@ -40,11 +40,15 @@ enum
  CEVT_NP_LINE_RESPONSE,
 
  CEVT_SET_INPUT_FOCUS,	// Main thread to game thread.
+ CEVT_EMU_RUN,
+ CEVT_EMU_PAUSE,
+ CEVT_EMU_RESET,
 
  CEVT__MAX = 0xFFFF
 };
 
 void SendCEvent(unsigned int code, void *data1, void *data2, const uint16 idata16 = 0);
+void SendCEventToGT(unsigned int code, void *data1, void *data2, const uint16 idata16 = 0);
 
 void PauseGameLoop(bool p);
 
@@ -62,6 +66,7 @@ MDFN_HIDE extern bool pending_save_state, pending_ssnapshot, pending_snapshot, p
 void DoRunNormal(void);
 void DoFrameAdvance(void);
 bool IsInFrameAdvance(void);
+bool IsGameLoopPaused(void);
 
 bool DebuggerFudge(void);
 

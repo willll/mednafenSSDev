@@ -441,6 +441,75 @@ static MDFN_COLD std::vector<BranchTraceResult> DBG_GetBranchTrace(void)
  return(ret);
 }
 
+static MDFN_COLD void DBG_DumpBranchTrace(unsigned which, unsigned max_entries)
+{
+ if(!DBG.BTEnabled)
+  return;
+
+ SS_DBG(SS_DBG_WARNING | SS_DBG_SH2, "[%s] Branch trace (most recent first):\n", CPU[which].cpu_name);
+
+ for(unsigned x = 0; x < DBGS::NUMBT && max_entries; x++)
+ {
+  const auto* bt = &DBG.BTEntries[which][(DBG.BTIndex[which] + DBGS::NUMBT - 1 - x) % DBGS::NUMBT];
+  char estr[32];
+
+  if(!bt->valid)
+   continue;
+
+  trio_snprintf(estr, sizeof(estr), "UNK");
+
+  switch(bt->exception)
+  {
+   case -1:
+	strcpy(estr, "");
+	break;
+
+   case SH7095::EXCEPTION_POWERON:
+	trio_snprintf(estr, sizeof(estr), " PRST");
+	break;
+
+   case SH7095::EXCEPTION_RESET:
+	trio_snprintf(estr, sizeof(estr), " MRST");
+	break;
+
+   case SH7095::EXCEPTION_ILLINSTR:
+	trio_snprintf(estr, sizeof(estr), " ILL");
+	break;
+
+   case SH7095::EXCEPTION_ILLSLOT:
+	trio_snprintf(estr, sizeof(estr), " ILLS");
+	break;
+
+   case SH7095::EXCEPTION_CPUADDR:
+	trio_snprintf(estr, sizeof(estr), " CPUA");
+	break;
+
+   case SH7095::EXCEPTION_DMAADDR:
+	trio_snprintf(estr, sizeof(estr), " DMAA");
+	break;
+
+   case SH7095::EXCEPTION_NMI:
+	trio_snprintf(estr, sizeof(estr), " NMI");
+	break;
+
+   case SH7095::EXCEPTION_BREAK:
+	trio_snprintf(estr, sizeof(estr), " BRK");
+	break;
+
+   case SH7095::EXCEPTION_TRAP:
+	trio_snprintf(estr, sizeof(estr), " TRAP%02X", bt->vecnum);
+	break;
+
+   case SH7095::EXCEPTION_INT:
+	trio_snprintf(estr, sizeof(estr), " INT%02X", bt->vecnum);
+	break;
+  }
+
+  SS_DBG(SS_DBG_WARNING | SS_DBG_SH2, "[%s]   %08x -> %08x%s (x%u)\n", CPU[which].cpu_name, bt->from, bt->to, estr, bt->branch_count);
+  max_entries--;
+ }
+}
+
 static INLINE void DBG_SetEffTS(const sscpu_timestamp_t eff_ts)
 {
  DBG.eff_ts = eff_ts;
@@ -1053,6 +1122,7 @@ static INLINE void DBG_SetEffTS(const sscpu_timestamp_t eff_ts) { }
 static INLINE bool DBG_InSlaveStep(void) { return false; }
 template<unsigned which> static INLINE void DBG_CPUHandler(void) { }
 static INLINE void DBG_AddBranchTrace(unsigned which, uint32 to, int exception, unsigned vecnum = 0) { }
+static INLINE void DBG_DumpBranchTrace(unsigned which, unsigned max_entries) { }
 static INLINE bool DBG_NeedCPUHooks(void) { return false; } 
 static INLINE void DBG_Init(void) { }
 static INLINE void DBG_Kill(void) { }

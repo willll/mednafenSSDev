@@ -1342,7 +1342,7 @@ void Video_Init(void)
    SDL_WINDOW_HIDDEN | SDL_WINDOW_OPENGL,
    SDL_WINDOW_HIDDEN
   };
-  window = SDL_CreateWindow("Mednafen", winpos_x, winpos_y, 64, 64, try_flags[i]);
+    window = SDL_CreateWindow("Mednafen", winpos_x, winpos_y, 64, 64, try_flags[i] | SDL_WINDOW_RESIZABLE);
  }
 
  if(!window)
@@ -1359,6 +1359,7 @@ void Video_Init(void)
   if(SDL_GetWindowWMInfo(window, &wminf))
   {
    HWND hwnd = wminf.info.win.window;
+    SetWindowLong(hwnd, GWL_STYLE, GetWindowLong(hwnd, GWL_STYLE) | WS_MAXIMIZEBOX);
    HICON small_icon;
    HICON large_icon;
 
@@ -1890,6 +1891,24 @@ void BlitScreen(MDFN_Surface *msurface, const MDFN_Rect *DisplayRect, const int3
 void Video_Exposed(void)
 {
  MarkNeedBBClear();
+}
+
+void Video_Resized(void)
+{
+ int w, h;
+ if(ogl_blitter)
+  SDL_GL_GetDrawableSize(window, &w, &h);
+ else
+  SDL_GetWindowSize(window, &w, &h);
+
+ if(w > 0 && h > 0 && (w != screen_w || h != screen_h))
+ {
+  screen_w = w;
+  screen_h = h;
+  if(ogl_blitter)
+   ogl_blitter->SetViewport(screen_w, screen_h);
+  MarkNeedBBClear();
+ }
 }
 
 void Video_PtoV(const int in_x, const int in_y, float* out_x, float* out_y)

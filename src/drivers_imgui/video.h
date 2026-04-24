@@ -39,6 +39,7 @@ void Video_Init(void) MDFN_COLD;
 void Video_Sync(MDFNGI* gi);
 
 void Video_Exposed(void);
+void Video_Resized(void);
 
 void Video_Kill(void) MDFN_COLD;
 

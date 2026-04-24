@@ -1259,6 +1259,11 @@ bool IsInFrameAdvance(void)
 	return InFrameAdvance;
 }
 
+bool IsGameLoopPaused(void)
+{
+	return GameLoopPaused;
+}
+
 void DoRunNormal(void)
 {
 	NeedFrameAdvance = 0;
@@ -1562,6 +1567,22 @@ static void GameThread_HandleEvents(void)
 			case CEVT_SET_INPUT_FOCUS:
 				Input_SetFocus((event.user.data1 != NULL));
 				break;
+
+			case CEVT_EMU_RUN:
+				DoRunNormal();
+				PauseGameLoop(false);
+				break;
+
+			case CEVT_EMU_PAUSE:
+				PauseGameLoop(true);
+				break;
+
+			case CEVT_EMU_RESET:
+				MDFNI_Power();
+				DoRunNormal();
+				PauseGameLoop(false);
+				Debugger_GT_ForceStepIfStepping();
+				break;
 			}
 			break;
 		}
@@ -1600,6 +1621,11 @@ static void SendCEvent_to_GT(unsigned int code, void *data1, void *data2, uint16
 	evt.user.data2 = data2;
 
 	gtevents.Write(evt);
+}
+
+void SendCEventToGT(unsigned int code, void *data1, void *data2, uint16 idata16)
+{
+	SendCEvent_to_GT(code, data1, data2, idata16);
 }
 
 void GT_ToggleFS(void)
@@ -1691,6 +1717,10 @@ void PumpWrap(void)
 			case SDL_WINDOWEVENT_FOCUS_LOST:
 				// puts("Lost");
 				SendCEvent_to_GT(CEVT_SET_INPUT_FOCUS, NULL, NULL);
+				break;
+
+			case SDL_WINDOWEVENT_SIZE_CHANGED:
+				Video_Resized();
 				break;
 			}
 			break;

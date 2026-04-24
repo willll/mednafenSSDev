@@ -185,7 +185,6 @@ else()
     set(SRCS 
     ${SRCS}
 
-    # tmp
     src/cdrom/CDAFReader_FLAC.cpp
 
         src/mthreading/MThreading_POSIX.cpp
@@ -195,47 +194,6 @@ else()
         src/net/Net_POSIX.cpp
     )
 endif()
-
-set(DRIVERS 
-    src/drivers/main.cpp
-    src/drivers/args.cpp
-    src/drivers/help.cpp
-    src/drivers/ers.cpp
-    src/drivers/sound.cpp
-    src/drivers/netplay.cpp
-    src/drivers/input.cpp
-    src/drivers/mouse.cpp
-    src/drivers/keyboard.cpp
-    src/drivers/Joystick.cpp
-    src/drivers/Joystick_SDL.cpp
-    src/drivers/TextEntry.cpp
-    src/drivers/console.cpp
-    src/drivers/cheat.cpp
-    src/drivers/fps.cpp
-    src/drivers/video-state.cpp
-    src/drivers/remote.cpp
-    src/drivers/rmdui.cpp
-    src/drivers/opengl.cpp
-    src/drivers/shader.cpp
-    src/drivers/nongl.cpp
-    src/drivers/nnx.cpp
-    src/drivers/video.cpp
-    src/drivers/hqxx-common.cpp
-    src/drivers/hq2x.cpp
-    src/drivers/hq3x.cpp
-    src/drivers/hq4x.cpp
-    src/drivers/scale2x.c
-    src/drivers/scale3x.c
-    src/drivers/scalebit.c
-    src/drivers/2xSaI.cpp
-    src/drivers/debugger.cpp
-    src/drivers/gfxdebugger.cpp
-    src/drivers/memdebugger.cpp
-    src/drivers/logdebugger.cpp
-    src/drivers/prompt.cpp
-    # linux
-    src/drivers/Joystick_Linux.cpp
-)
 
 #================ 
 
@@ -302,7 +260,7 @@ else()
     )
 endif()
 
-add_compile_definitions("DBG_IMGUI")
+add_compile_definitions("DBG_IMGUI" "MDFN_SS_DEV_BUILD=1")
 include_directories(BEFORE "src/drivers_imgui/imgui" "src/drivers_imgui/imgui/backends")
 # ================
 
@@ -351,9 +309,6 @@ set(SATURN
 # ================
 # NALL (from ares) + GDB
 set(GDB_NALL
-    #ares/nall/gdb/server.cpp
-    #ares/nall/tcptext/tcp-socket.cpp
-    #ares/nall/tcptext/tcptext-server.cpp
     src/drivers_imgui/nall-gdb.cpp
 
     tinygdb/tcp-socket.cpp
@@ -376,7 +331,6 @@ include_directories(${SDL2_INCLUDE_DIRS})
 pkg_search_module(FLAC REQUIRED flac)
 
 find_package(OpenGL REQUIRED)
-find_package(ZLIB REQUIRED)
 find_package(ZLIB REQUIRED)
 
 

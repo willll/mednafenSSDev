@@ -42,7 +42,7 @@
       "target": "127.0.0.1:43434",
       "remote": true,
       "cwd": "${workspaceFolder}/build",
-      "gdbpath": "/usr/bin/gdb-multiarch",
+      "gdbpath": "/usr/bin/gdb-multiarch"
     },
     {
       "type": "cppdbg",
@@ -54,6 +54,8 @@
         "~/tmp/SaturnRingLib/Tests/BuildDrop/UTs.elf",
         "-force_module",
         "ss",
+        "-ss.cart",
+        "debug",
         "~/tmp/SaturnRingLib/Tests/BuildDrop/UTs.cue"
       ],
       "cwd": "${workspaceFolder}/build",

@@ -54,7 +54,7 @@
 #include <assert.h>
 #include <math.h>
 
-#include "psx/masmem.h"
+#include <mednafen/masmem.h>
 #include "general.h"
 
 #if defined(HAVE_FENV_H)
