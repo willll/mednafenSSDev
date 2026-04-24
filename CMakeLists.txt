@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-project(Mednafen)
+project(mednafen)
 
 include(FindPkgConfig)
 include(CheckTypeSize)
@@ -368,6 +368,7 @@ target_link_libraries(${CMAKE_PROJECT_NAME} ${SDL2_LIBRARIES} ${OPENGL_LIBRARY} 
 target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -fsigned-char -fwrapv -fno-fast-math -fno-unsafe-math-optimizations -fno-aggressive-loop-optimizations  -Os -fvisibility=hidden )
 target_link_options(${CMAKE_PROJECT_NAME} PRIVATE )
 set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD 23)
+install(TARGETS ${CMAKE_PROJECT_NAME} RUNTIME DESTINATION /usr/games)
 
 
 set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY POSITION_INDEPENDENT_CODE FALSE)
