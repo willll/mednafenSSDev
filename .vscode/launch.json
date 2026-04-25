@@ -48,7 +48,7 @@
       "type": "cppdbg",
       "request": "launch",
       "name": "Launch mednafen",
-      "program": "${workspaceFolder}/build/Mednafen",
+      "program": "${workspaceFolder}/build/mednafen",
       "args": [
         "-elf",
         "~/tmp/SaturnRingLib/Tests/BuildDrop/UTs.elf",

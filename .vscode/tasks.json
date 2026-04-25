@@ -35,7 +35,7 @@
         "--preset",
         "debug",
         "--target",
-        "Mednafen"
+        "mednafen"
       ],
       "options": {
         "cwd": "${workspaceFolder}"

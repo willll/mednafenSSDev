@@ -44,7 +44,7 @@
 /include/trio/
 /include/zstd/
 
-# Mednafen specific
+# mednafen specific
 /src/mednafen*
 !/src/mednafen*.*
 

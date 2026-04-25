@@ -9,10 +9,10 @@ build-win32:
         - export PATH="/opt/mxe-w64/usr/bin/:$PATH"
         - x86_64-w64-mingw32.static-cmake .. -DWINDOWS=1
         - make
-        - x86_64-w64-mingw32.static-strip Mednafen.exe -o ../Mednafen.exe
+        - x86_64-w64-mingw32.static-strip mednafen.exe -o ../mednafen.exe
     artifacts:
         untracked: false
         when: on_success
         expire_in: 30 days
         paths:
-          - Mednafen.exe
+          - mednafen.exe
