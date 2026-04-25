@@ -9,21 +9,28 @@ Inspired by [mednafenPceDev](https://github.com/pce-devel/mednafenPceDev).
 
 ## How to Build
 
-Run the following commands:
+This project uses CMake presets.
+
+### Linux debug build
 
 ```bash
-./configure --enable-dev-build --enable-debugger
-make
+cmake --preset debug
+cmake --build --preset debug --target mednafen
 ```
 
-or
+### Rebuild and reinstall from scratch (Linux)
+
+This rebuilds from a clean `build/` directory and installs the executable to `/usr/games/mednafen`.
 
 ```bash
-mkdir build
-cd build
-export PATH="/opt/mxe-w64/usr/bin/:$PATH"
-x86_64-w64-mingw32.static-cmake .. -DWINDOWS=1 -DMDFN_ENABLE_DEV_BUILD=1 -DWANT_DEBUGGER=1
-make
+cd /home/will/tmp/mednafenSSDev && rm -rf build && cmake --preset debug && cmake --build --preset debug --target mednafen && sudo cmake --install build
+```
+
+### Win32 cross-build (MXE toolchain)
+
+```bash
+cmake --preset win32
+cmake --build --preset win32
 ```
 
 ## How to Configure `mednafen.cfg`

@@ -8,6 +8,9 @@ void MDFN_SetBaseDirectory(const std::string& dir);
 std::string MDFN_GetBaseDirectory(void);
 
 void MDFN_SetFileBase(const std::string& dir_path, const std::string& file_base, const std::string& file_ext);
+std::string MDFN_GetFileBaseDirectory(void);
+std::string MDFN_GetFileBase(void);
+std::string MDFN_GetFileExt(void);
 
 std::string MDFN_MakeFName(int type, int id1, const char *cd1);
 

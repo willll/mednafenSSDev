@@ -345,6 +345,287 @@ static MDFN_COLD void DBG_EnableBranchTrace(bool enable)
  DBG.BTEnabled = enable;
 }
 
+static MDFN_COLD uint16 DBG_DisPeek16(uint32 A);
+static MDFN_COLD uint32 DBG_DisPeek32(uint32 A);
+
+static void (*LogFunc)(const char* type, const char* text) = nullptr;
+
+struct SH2MapSymbol
+{
+ uint32 addr;
+ std::string name;
+};
+
+static std::string SH2MapSourcePath;
+static std::vector<SH2MapSymbol> SH2MapSymbols;
+
+static MDFN_COLD bool DBG_IsLikelyMapSymbolName(const char* name)
+{
+ const size_t len = strlen(name);
+
+ if(!len)
+  return false;
+
+ if(name[0] == '.' || !strcmp(name, "=") || !strncmp(name, "0x", 2))
+  return false;
+
+ if(strchr(name, '/') || strchr(name, '\\') || strchr(name, '('))
+  return false;
+
+ if(len > 2 && name[len - 2] == '.' && name[len - 1] == 'o')
+  return false;
+
+ return true;
+}
+
+static MDFN_COLD void DBG_LoadSH2MapSymbols(void)
+{
+ const std::string map_path = MDFN_GetFileBaseDirectory() + MDFN_PSS + MDFN_GetFileBase() + ".map";
+
+ if(SH2MapSourcePath == map_path)
+   return;
+
+ SH2MapSourcePath = map_path;
+ SH2MapSymbols.clear();
+
+ FILE* fp = fopen(map_path.c_str(), "r");
+
+ if(!fp)
+   return;
+
+ char buf[1024];
+
+ while(fgets(buf, sizeof(buf), fp))
+ {
+   unsigned addr;
+   char name[512];
+
+   if(sscanf(buf, " %x %511s", &addr, name) == 2)
+   {
+    if(addr >= 0x06000000 && name[0] && name[0] != '.')
+    {
+      if(DBG_IsLikelyMapSymbolName(name))
+       SH2MapSymbols.push_back({ addr, name });
+    }
+   }
+   else if(sscanf(buf, " %x %*x %511s", &addr, name) == 2)
+   {
+    if(addr >= 0x06000000 && name[0] && name[0] != '.')
+    {
+      if(DBG_IsLikelyMapSymbolName(name))
+       SH2MapSymbols.push_back({ addr, name });
+    }
+   }
+ }
+
+ fclose(fp);
+
+ std::sort(SH2MapSymbols.begin(), SH2MapSymbols.end(), [](const SH2MapSymbol& a, const SH2MapSymbol& b)
+ {
+   if(a.addr != b.addr)
+    return a.addr < b.addr;
+
+   return a.name < b.name;
+ });
+
+ SH2MapSymbols.erase(std::unique(SH2MapSymbols.begin(), SH2MapSymbols.end(), [](const SH2MapSymbol& a, const SH2MapSymbol& b)
+ {
+   return a.addr == b.addr && a.name == b.name;
+ }), SH2MapSymbols.end());
+}
+
+static MDFN_COLD const char* DBG_LookupSH2MapSymbol(uint32 addr, uint32* offset_out)
+{
+ DBG_LoadSH2MapSymbols();
+
+ if(offset_out)
+   *offset_out = 0;
+
+ if(SH2MapSymbols.empty())
+   return nullptr;
+
+ size_t left = 0;
+ size_t right = SH2MapSymbols.size();
+
+ while(left < right)
+ {
+   const size_t mid = left + ((right - left) >> 1);
+
+   if(SH2MapSymbols[mid].addr <= addr)
+    left = mid + 1;
+   else
+    right = mid;
+ }
+
+ if(!left)
+   return nullptr;
+
+ const SH2MapSymbol& sym = SH2MapSymbols[left - 1];
+
+ if(offset_out)
+   *offset_out = addr - sym.addr;
+
+ return sym.name.c_str();
+}
+
+static MDFN_COLD void DBG_FormatBranchTraceTarget(uint32 to, int exception, unsigned vecnum, char* out, size_t out_len)
+{
+ const char* label = nullptr;
+ char tmp_label[16];
+
+ switch(exception)
+ {
+  case SH7095::EXCEPTION_POWERON:
+   label = "poweron";
+   break;
+
+  case SH7095::EXCEPTION_RESET:
+   label = "reset";
+   break;
+
+  case SH7095::EXCEPTION_ILLINSTR:
+   label = "illinstr";
+   break;
+
+  case SH7095::EXCEPTION_ILLSLOT:
+   label = "illslot";
+   break;
+
+  case SH7095::EXCEPTION_CPUADDR:
+   label = "cpuaddr";
+   break;
+
+  case SH7095::EXCEPTION_DMAADDR:
+   label = "dmaaddr";
+   break;
+
+  case SH7095::EXCEPTION_NMI:
+   label = "nmi";
+   break;
+
+  case SH7095::EXCEPTION_BREAK:
+   label = "break";
+   break;
+
+  case SH7095::EXCEPTION_TRAP:
+   trio_snprintf(tmp_label, sizeof(tmp_label), "trap%02x", vecnum);
+   label = tmp_label;
+   break;
+
+  case SH7095::EXCEPTION_INT:
+   trio_snprintf(tmp_label, sizeof(tmp_label), "int%02x", vecnum);
+   label = tmp_label;
+   break;
+ }
+
+ if(!label)
+ {
+  if(to <= 0x000FFFFF)
+   label = "bios";
+  else if(to >= 0x00100000 && to <= 0x0017FFFF)
+   label = "smpc";
+  else if(to >= 0x00180000 && to <= 0x001FFFFF)
+   label = "bkram";
+  else if(to >= 0x00200000 && to <= 0x003FFFFF)
+   label = "wraml";
+  else if(to >= 0x05A00000 && to <= 0x05AFFFFF)
+   label = "scspram";
+  else if(to >= 0x05B00000 && to <= 0x05BFFFFF)
+   label = "scspreg";
+  else if(to >= 0x05C00000 && to <= 0x05C7FFFF)
+   label = "vdp1vram";
+  else if(to >= 0x05C80000 && to <= 0x05CFFFFF)
+   label = "vdp1fb";
+  else if(to >= 0x05D00000 && to <= 0x05D7FFFF)
+   label = "vdp1reg";
+  else if(to >= 0x05E00000 && to <= 0x05EFFFFF)
+   label = "vdp2vram";
+  else if(to >= 0x05F00000 && to <= 0x05F7FFFF)
+   label = "vdp2cram";
+  else if(to >= 0x05F80000 && to <= 0x05FBFFFF)
+   label = "vdp2reg";
+  else if(to >= 0x05FE0000 && to <= 0x05FEFFFF)
+   label = "scureg";
+  else if(to >= 0x05FF0000 && to <= 0x05FFFFFF)
+   label = "scudbg";
+  else if(to >= 0x06000000 && to <= 0x07FFFFFF)
+   label = "wramh";
+ }
+
+ if(label)
+  trio_snprintf(out, out_len, "%08x<%s>", to, label);
+ else
+  trio_snprintf(out, out_len, "%08x", to);
+}
+
+static MDFN_COLD void DBG_FormatBranchTraceCode(uint32 from, int exception, unsigned vecnum, char* out, size_t out_len, bool full_disasm)
+{
+ trio_snprintf(out, out_len, "UNK");
+
+ switch(exception)
+ {
+   case -1:
+   {
+    char disbuf[256];
+    uint16 instr = DBG_DisPeek16(from);
+
+    SH7095::Disassemble(instr, from + 4, disbuf, DBG_DisPeek16, DBG_DisPeek32);
+
+    for(char* p = disbuf; *p; p++)
+      *p = tolower(*p);
+
+    if(!full_disasm)
+    {
+      if(char* sp = strchr(disbuf, ' '))
+       *sp = 0;
+    }
+
+    trio_snprintf(out, out_len, "%s", disbuf);
+    break;
+   }
+
+   case SH7095::EXCEPTION_POWERON:
+	trio_snprintf(out, out_len, "PRST");
+	break;
+
+   case SH7095::EXCEPTION_RESET:
+	trio_snprintf(out, out_len, "MRST");
+	break;
+
+   case SH7095::EXCEPTION_ILLINSTR:
+	trio_snprintf(out, out_len, "ILL");
+	break;
+
+   case SH7095::EXCEPTION_ILLSLOT:
+	trio_snprintf(out, out_len, "ILLS");
+	break;
+
+   case SH7095::EXCEPTION_CPUADDR:
+	trio_snprintf(out, out_len, "CPUA");
+	break;
+
+   case SH7095::EXCEPTION_DMAADDR:
+	trio_snprintf(out, out_len, "DMAA");
+	break;
+
+   case SH7095::EXCEPTION_NMI:
+	trio_snprintf(out, out_len, "NMI");
+	break;
+
+   case SH7095::EXCEPTION_BREAK:
+	trio_snprintf(out, out_len, "BRK");
+	break;
+
+   case SH7095::EXCEPTION_TRAP:
+	trio_snprintf(out, out_len, "TRAP%02X", vecnum);
+	break;
+
+   case SH7095::EXCEPTION_INT:
+	trio_snprintf(out, out_len, "INT%02X", vecnum);
+	break;
+ }
+}
+
 static MDFN_COLD void DBG_AddBranchTrace(unsigned which, uint32 to, int exception, unsigned vecnum = 0)
 {
  const uint32 from = DBG.CurPC[which];
@@ -375,7 +656,6 @@ static MDFN_COLD std::vector<BranchTraceResult> DBG_GetBranchTrace(void)
 
  for(unsigned x = 0; x < DBGS::NUMBT; x++)
  {
-  char estr[32];
   const auto* bt = &DBG.BTEntries[DBG.ActiveCPU][(x + DBG.BTIndex[DBG.ActiveCPU]) % DBGS::NUMBT];
 
   if(!bt->valid)
@@ -383,58 +663,9 @@ static MDFN_COLD std::vector<BranchTraceResult> DBG_GetBranchTrace(void)
 
   tmp.count = bt->branch_count;
   trio_snprintf(tmp.from, sizeof(tmp.from), "%08x", bt->from);
-  trio_snprintf(tmp.to, sizeof(tmp.to), "%08x", bt->to);
+   DBG_FormatBranchTraceTarget(bt->to, bt->exception, bt->vecnum, tmp.to, sizeof(tmp.to));
 
-  trio_snprintf(estr, sizeof(estr), "UNK");
-
-  switch(bt->exception)
-  {
-   case -1:
-	estr[0] = 0;
-	break;
-
-   case SH7095::EXCEPTION_POWERON:
-	trio_snprintf(estr, sizeof(estr), "PRST");
-	break;
-
-   case SH7095::EXCEPTION_RESET:
-	trio_snprintf(estr, sizeof(estr), "MRST");
-	break;
-
-   case SH7095::EXCEPTION_ILLINSTR:
-	trio_snprintf(estr, sizeof(estr), "ILL");
-	break;
-
-   case SH7095::EXCEPTION_ILLSLOT:
-	trio_snprintf(estr, sizeof(estr), "ILLS");
-	break;
-
-   case SH7095::EXCEPTION_CPUADDR:
-	trio_snprintf(estr, sizeof(estr), "CPUA");
-	break;
-
-   case SH7095::EXCEPTION_DMAADDR:
-	trio_snprintf(estr, sizeof(estr), "DMAA");
-	break;
-
-   case SH7095::EXCEPTION_NMI:
-	trio_snprintf(estr, sizeof(estr), "NMI");
-	break;
-
-   case SH7095::EXCEPTION_BREAK:
-	trio_snprintf(estr, sizeof(estr), "BRK");
-	break;
-
-   case SH7095::EXCEPTION_TRAP:
-	trio_snprintf(estr, sizeof(estr), "TRAP%02X", bt->vecnum);
-	break;
-
-   case SH7095::EXCEPTION_INT:
-	trio_snprintf(estr, sizeof(estr), "INT%02X", bt->vecnum);
-	break;
-  }
-
-  trio_snprintf(tmp.code, sizeof(tmp.code), "%s", estr);
+  DBG_FormatBranchTraceCode(bt->from, bt->exception, bt->vecnum, tmp.code, sizeof(tmp.code), false);
 
   ret.push_back(tmp);
  }
@@ -446,68 +677,194 @@ static MDFN_COLD void DBG_DumpBranchTrace(unsigned which, unsigned max_entries)
  if(!DBG.BTEnabled)
   return;
 
- SS_DBG(SS_DBG_WARNING | SS_DBG_SH2, "[%s] Branch trace (most recent first):\n", CPU[which].cpu_name);
+ trio_printf("[SH2-%u] Branch trace (most recent first):\n", which);
+ if(LogFunc)
+  LogFunc("SH2-BT", "Branch trace (most recent first):");
 
  for(unsigned x = 0; x < DBGS::NUMBT && max_entries; x++)
  {
   const auto* bt = &DBG.BTEntries[which][(DBG.BTIndex[which] + DBGS::NUMBT - 1 - x) % DBGS::NUMBT];
-  char estr[32];
+  char estr[256];
+  char tostr[64];
+  char line[384];
 
   if(!bt->valid)
    continue;
 
-  trio_snprintf(estr, sizeof(estr), "UNK");
+  DBG_FormatBranchTraceTarget(bt->to, bt->exception, bt->vecnum, tostr, sizeof(tostr));
+  DBG_FormatBranchTraceCode(bt->from, bt->exception, bt->vecnum, estr, sizeof(estr), true);
 
-  switch(bt->exception)
-  {
-   case -1:
-	strcpy(estr, "");
-	break;
-
-   case SH7095::EXCEPTION_POWERON:
-	trio_snprintf(estr, sizeof(estr), " PRST");
-	break;
-
-   case SH7095::EXCEPTION_RESET:
-	trio_snprintf(estr, sizeof(estr), " MRST");
-	break;
-
-   case SH7095::EXCEPTION_ILLINSTR:
-	trio_snprintf(estr, sizeof(estr), " ILL");
-	break;
-
-   case SH7095::EXCEPTION_ILLSLOT:
-	trio_snprintf(estr, sizeof(estr), " ILLS");
-	break;
-
-   case SH7095::EXCEPTION_CPUADDR:
-	trio_snprintf(estr, sizeof(estr), " CPUA");
-	break;
-
-   case SH7095::EXCEPTION_DMAADDR:
-	trio_snprintf(estr, sizeof(estr), " DMAA");
-	break;
-
-   case SH7095::EXCEPTION_NMI:
-	trio_snprintf(estr, sizeof(estr), " NMI");
-	break;
-
-   case SH7095::EXCEPTION_BREAK:
-	trio_snprintf(estr, sizeof(estr), " BRK");
-	break;
-
-   case SH7095::EXCEPTION_TRAP:
-	trio_snprintf(estr, sizeof(estr), " TRAP%02X", bt->vecnum);
-	break;
-
-   case SH7095::EXCEPTION_INT:
-	trio_snprintf(estr, sizeof(estr), " INT%02X", bt->vecnum);
-	break;
-  }
-
-  SS_DBG(SS_DBG_WARNING | SS_DBG_SH2, "[%s]   %08x -> %08x%s (x%u)\n", CPU[which].cpu_name, bt->from, bt->to, estr, bt->branch_count);
+  trio_snprintf(line, sizeof(line), "[SH2-%u]   %08x -> %s  %s (x%u)", which, bt->from, tostr, estr, bt->branch_count);
+  trio_printf("%s\n", line);
+  if(LogFunc)
+   LogFunc("SH2-BT", line);
   max_entries--;
  }
+}
+
+static MDFN_COLD bool DBG_TryPeek32(uint32 A, uint32* out)
+{
+ const uintptr_t base = SH7095_FastMap[A >> SH7095_EXT_MAP_GRAN_BITS];
+
+ if(!base)
+   return false;
+
+ *out = (*(uint16*)(base + (A | 0)) << 16) | (*(uint16*)(base + (A | 2)) << 0);
+ return true;
+}
+
+static MDFN_COLD bool DBG_TryPeek16(uint32 A, uint16* out)
+{
+ const uintptr_t base = SH7095_FastMap[A >> SH7095_EXT_MAP_GRAN_BITS];
+
+ if(!base)
+   return false;
+
+ *out = *(uint16*)(base + A);
+ return true;
+}
+
+static MDFN_COLD void DBG_DumpCrashState(unsigned which)
+{
+ char line[512];
+ const uint32 pc = CPU[which].GetRegister(SH7095::GSREG_PC_ID, NULL, 0);
+ const uint32 sp = CPU[which].GetRegister(SH7095::GSREG_R15, NULL, 0);
+ const uint32 pr = CPU[which].GetRegister(SH7095::GSREG_PR, NULL, 0);
+ const uint32 sr = CPU[which].GetRegister(SH7095::GSREG_SR, NULL, 0);
+ const uint32 vbr = CPU[which].GetRegister(SH7095::GSREG_VBR, NULL, 0);
+ const uint32 gbr = CPU[which].GetRegister(SH7095::GSREG_GBR, NULL, 0);
+ const uint32 mach = CPU[which].GetRegister(SH7095::GSREG_MACH, NULL, 0);
+ const uint32 macl = CPU[which].GetRegister(SH7095::GSREG_MACL, NULL, 0);
+
+ trio_printf("[SH2-%u] ===== CRASH DUMP BEGIN =====\n", which);
+ if(LogFunc)
+   LogFunc("SH2-CRASH", "===== CRASH DUMP BEGIN =====");
+
+ trio_snprintf(line, sizeof(line), "[SH2-%u] PC=%08x SP=%08x PR=%08x SR=%08x VBR=%08x GBR=%08x MACH=%08x MACL=%08x", which, pc, sp, pr, sr, vbr, gbr, mach, macl);
+ trio_printf("%s\n", line);
+ if(LogFunc)
+   LogFunc("SH2-CRASH", line);
+
+ for(unsigned r = 0; r < 16; r += 4)
+ {
+   trio_snprintf(line, sizeof(line), "[SH2-%u] R%02u=%08x R%02u=%08x R%02u=%08x R%02u=%08x", which, r + 0, CPU[which].GetRegister(SH7095::GSREG_R0 + r + 0, NULL, 0), r + 1, CPU[which].GetRegister(SH7095::GSREG_R0 + r + 1, NULL, 0), r + 2, CPU[which].GetRegister(SH7095::GSREG_R0 + r + 2, NULL, 0), r + 3, CPU[which].GetRegister(SH7095::GSREG_R0 + r + 3, NULL, 0));
+   trio_printf("%s\n", line);
+   if(LogFunc)
+    LogFunc("SH2-CRASH", line);
+ }
+
+ trio_printf("[SH2-%u] Callstack (heuristic):\n", which);
+ if(LogFunc)
+   LogFunc("SH2-CRASH", "Callstack (heuristic):");
+
+ trio_snprintf(line, sizeof(line), "[SH2-%u]   #0 %08x (PR)", which, pr);
+
+ {
+   uint32 sym_off;
+   const char* sym_name = DBG_LookupSH2MapSymbol(pr, &sym_off);
+
+   if(sym_name)
+    trio_snprintf(line, sizeof(line), "[SH2-%u]   #0 %08x (PR) <%s+0x%x>", which, pr, sym_name, sym_off);
+   else
+    trio_snprintf(line, sizeof(line), "[SH2-%u]   #0 %08x (PR)", which, pr);
+ }
+
+ trio_printf("%s\n", line);
+ if(LogFunc)
+   LogFunc("SH2-CRASH", line);
+
+ {
+   unsigned frame = 1;
+
+   for(unsigned i = 0; i < 64 && frame < 12; i++)
+   {
+    const uint32 a = (sp &~ 0x3) + (i * 4);
+    uint32 v;
+
+    if(!DBG_TryPeek32(a, &v))
+      continue;
+
+    if((v & 1) || v == pr)
+      continue;
+
+    if((v <= 0x000FFFFF) || (v >= 0x00200000 && v <= 0x003FFFFF) || (v >= 0x06000000 && v <= 0x07FFFFFF))
+    {
+       uint32 sym_off;
+       const char* sym_name = DBG_LookupSH2MapSymbol(v, &sym_off);
+
+       if(sym_name)
+         trio_snprintf(line, sizeof(line), "[SH2-%u]   #%u %08x <%s+0x%x> (from [SP+0x%02x])", which, frame, v, sym_name, sym_off, i * 4);
+       else
+         trio_snprintf(line, sizeof(line), "[SH2-%u]   #%u %08x (from [SP+0x%02x])", which, frame, v, i * 4);
+
+      trio_printf("%s\n", line);
+      if(LogFunc)
+       LogFunc("SH2-CRASH", line);
+      frame++;
+    }
+   }
+ }
+
+ trio_printf("[SH2-%u] Stack memory dump around SP:\n", which);
+ if(LogFunc)
+   LogFunc("SH2-CRASH", "Stack memory dump around SP:");
+
+ for(unsigned i = 0; i < 16; i++)
+ {
+   const uint32 a = (sp &~ 0x3) + (i * 4);
+   uint32 v;
+
+   if(DBG_TryPeek32(a, &v))
+    trio_snprintf(line, sizeof(line), "[SH2-%u]   [%08x] = %08x", which, a, v);
+   else
+    trio_snprintf(line, sizeof(line), "[SH2-%u]   [%08x] = <unmapped>", which, a);
+
+   trio_printf("%s\n", line);
+   if(LogFunc)
+    LogFunc("SH2-CRASH", line);
+ }
+
+ trio_printf("[SH2-%u] Code window around PC:\n", which);
+ if(LogFunc)
+   LogFunc("SH2-CRASH", "Code window around PC:");
+
+ for(int i = -4; i < 12; i++)
+ {
+   const uint32 a = (pc &~ 0x1) + (i * 2);
+   uint16 instr;
+
+   if(DBG_TryPeek16(a, &instr))
+   {
+    char disbuf[256];
+    SH7095::Disassemble(instr, a + 4, disbuf, DBG_DisPeek16, DBG_DisPeek32);
+    for(char* p = disbuf; *p; p++)
+      *p = tolower(*p);
+    trio_snprintf(line, sizeof(line), "[SH2-%u]   %s %08x: %04x  %s", which, (a == (pc &~ 0x1)) ? ">" : " ", a, instr, disbuf);
+   }
+   else
+    trio_snprintf(line, sizeof(line), "[SH2-%u]   %s %08x: <unmapped>", which, (a == (pc &~ 0x1)) ? ">" : " ", a);
+
+   trio_printf("%s\n", line);
+   if(LogFunc)
+    LogFunc("SH2-CRASH", line);
+ }
+
+ trio_printf("[SH2-%u] ===== CRASH DUMP END =====\n", which);
+ if(LogFunc)
+   LogFunc("SH2-CRASH", "===== CRASH DUMP END =====");
+}
+
+static MDFN_COLD void DBG_DumpCrashStatePair(unsigned primary_which)
+{
+ DBG_DumpCrashState(primary_which);
+
+ if(primary_which < 2)
+   DBG_DumpCrashState(primary_which ^ 1);
+}
+
+static MDFN_COLD void DBG_SetLogFunc(void (*lf)(const char* type, const char* text))
+{
+ LogFunc = lf;
 }
 
 static INLINE void DBG_SetEffTS(const sscpu_timestamp_t eff_ts)
@@ -1112,7 +1469,7 @@ static DebuggerInfoStruct DBGInfo
  DBG_GetBranchTrace,
 
  NULL,
- NULL,
+ DBG_SetLogFunc,
 
  NULL,
  NULL,
@@ -1123,6 +1480,8 @@ static INLINE bool DBG_InSlaveStep(void) { return false; }
 template<unsigned which> static INLINE void DBG_CPUHandler(void) { }
 static INLINE void DBG_AddBranchTrace(unsigned which, uint32 to, int exception, unsigned vecnum = 0) { }
 static INLINE void DBG_DumpBranchTrace(unsigned which, unsigned max_entries) { }
+static INLINE void DBG_DumpCrashState(unsigned which) { }
+static INLINE void DBG_DumpCrashStatePair(unsigned primary_which) { }
 static INLINE bool DBG_NeedCPUHooks(void) { return false; } 
 static INLINE void DBG_Init(void) { }
 static INLINE void DBG_Kill(void) { }

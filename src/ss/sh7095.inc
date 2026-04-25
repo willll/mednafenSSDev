@@ -3363,6 +3363,11 @@ static const uint8 InstrDecodeTab[65536] =
   DBG_AddBranchTrace(this - CPU, new_PC, (exnum), (vecnum));		\
 									\
  SS_DBGTI(SS_DBG_SH2_EXCEPT, "[%s] Exception %u, vecnum=0x%02x, VBR=0x%08x, saved PC=0x%08x, New PC=0x%08x, New R15=0x%08x", cpu_name, (exnum), (vecnum), VBR, PC, new_PC, R[15]); \
+ if(MDFN_UNLIKELY((exnum) == EXCEPTION_ILLINSTR || (exnum) == EXCEPTION_ILLSLOT || (exnum) == EXCEPTION_CPUADDR || (exnum) == EXCEPTION_DMAADDR))\
+ {\
+	DBG_DumpBranchTrace(this - CPU, 24);\
+	DBG_DumpCrashStatePair(this - CPU);\
+ }\
 }
 
 

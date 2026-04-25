@@ -59,6 +59,21 @@ void MDFN_SetFileBase(const std::string& dir_path, const std::string& file_base,
  FileExt = file_ext;
 }
 
+std::string MDFN_GetFileBaseDirectory(void)
+{
+ return FileBaseDirectory;
+}
+
+std::string MDFN_GetFileBase(void)
+{
+ return FileBase;
+}
+
+std::string MDFN_GetFileExt(void)
+{
+ return FileExt;
+}
+
 typedef std::map<char, std::string> FSMap;
 
 static std::string EvalPathFS(const std::string& fstring, const FSMap& fmap)
