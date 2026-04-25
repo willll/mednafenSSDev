@@ -14,9 +14,11 @@ jobs:
     container:
       image: registry.gitlab.com/ced2911/mednafen-saturn-dev:latest
 
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - name: Checkout repository (with submodules)
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: recursive
 
