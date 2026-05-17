@@ -326,12 +326,27 @@ set(SYSTEMS ${SATURN} ${SASPLAY} src/demo/demo.cpp src/cdplay/cdplay.cpp)
 
 
 # add sdl2
+if (WIN32)
 pkg_search_module(SDL2 REQUIRED sdl2)
 include_directories(${SDL2_INCLUDE_DIRS})
+set(SDL2_LINK_LIBRARIES ${SDL2_LIBRARIES})
+else()
+find_package(SDL2 REQUIRED)
+
+if (TARGET SDL2::SDL2)
+    set(SDL2_LINK_LIBRARIES SDL2::SDL2)
+elseif (TARGET SDL2::SDL2-static)
+    set(SDL2_LINK_LIBRARIES SDL2::SDL2-static)
+else()
+    message(FATAL_ERROR "SDL2 package was found, but no usable SDL2 target is available.")
+endif()
+endif()
+
 pkg_search_module(FLAC REQUIRED flac)
 
 find_package(OpenGL REQUIRED)
 find_package(ZLIB REQUIRED)
+include_directories(${ZLIB_INCLUDE_DIRS})
 
 
 set(OS_LIBS )
@@ -364,7 +379,7 @@ endif()
 
 
 add_executable(${CMAKE_PROJECT_NAME} ${SRCS} ${DRIVERS} ${SYSTEMS} ${GDB_NALL})
-target_link_libraries(${CMAKE_PROJECT_NAME} ${SDL2_LIBRARIES} ${OPENGL_LIBRARY} ${FLAC_LINK_LIBRARIES} ${ZLIB_LIBRARIES} ${ALSA_LIBRARIES} ${Iconv_LIBRARIES} ${OS_LIBS} )
+target_link_libraries(${CMAKE_PROJECT_NAME} ${SDL2_LINK_LIBRARIES} ${OPENGL_LIBRARY} ${FLAC_LINK_LIBRARIES} ${ZLIB_LIBRARIES} ${ALSA_LIBRARIES} ${Iconv_LIBRARIES} ${OS_LIBS} )
 target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -fsigned-char -fwrapv -fno-fast-math -fno-unsafe-math-optimizations -fno-aggressive-loop-optimizations  -Os -fvisibility=hidden )
 target_link_options(${CMAKE_PROJECT_NAME} PRIVATE )
 set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD 23)

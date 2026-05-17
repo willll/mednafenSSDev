@@ -1,4 +1,4 @@
-name: Build Mednafen for Windows
+name: Build Mednafen
 
 on:
   push:
@@ -8,6 +8,61 @@ on:
   pull_request:
 
 jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - name: Checkout repository (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            binutils-dev \
+            ccache \
+            libasound2-dev \
+            libflac-dev \
+            libgl1-mesa-dev \
+            libsdl2-dev \
+            pkg-config \
+            zlib1g-dev
+
+      - name: Restore ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ccache
+          key: ${{ runner.os }}-ccache-${{ github.ref_name }}-${{ hashFiles('CMakeLists.txt', 'CMakePresets.json', 'src/**', 'include/**') }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-${{ github.ref_name }}-
+            ${{ runner.os }}-ccache-
+
+      - name: Configure ccache
+        run: |
+          mkdir -p ~/.cache/ccache
+          ccache --set-config=cache_dir=$HOME/.cache/ccache
+          ccache --set-config=max_size=750M
+          ccache --zero-stats
+
+      - name: Configure debug build
+        run: cmake --preset debug -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+
+      - name: Build executable
+        run: cmake --build --preset debug --target mednafen
+
+      - name: Show ccache stats
+        run: ccache --show-stats
+
+      - name: Upload executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: mednafen-linux
+          path: build/mednafen
+
   build-win32:
     runs-on: ubuntu-latest
 
