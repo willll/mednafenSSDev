@@ -669,3 +669,15 @@ auto TinyGDBServer::resetClientData() -> void
   handshakeDone = false;
   requestDisconnect = false;
 }
+
+void TinyGDBServer::waitForDebuggerAttach(unsigned cpu_index)
+{
+    // Halt the emulator and wait for a debugger to attach
+    forceHalt = true;
+    haltSignalSent = false;
+    handshakeDone = false;
+    printf("[GDB] Crash detected on SH2-%u, waiting for debugger to attach...\n", cpu_index);
+    while (isHalted()) {
+        updateLoop();
+    }
+}

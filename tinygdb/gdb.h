@@ -102,6 +102,9 @@ public:
   auto updateLoop() -> void;
   auto getStatusText(u32 port, bool useIPv4) -> std::string;
 
+  // Public method to halt and wait for debugger attach on crash
+  void waitForDebuggerAttach(unsigned cpu_index);
+
 protected:
   auto onText(std::string_view text) -> void override;
   auto onConnect() -> void override;
