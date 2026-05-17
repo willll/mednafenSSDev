@@ -1,5 +1,3 @@
-
-
 #include "main.h"
 #include <mednafen/FileStream.h>
 
@@ -94,4 +92,10 @@ void med_init_gdb()
     };
 
     server.open(43434, true);
+}
+
+// Integrate debugger-on-crash hook
+extern "C" void MDFN_DebuggerCrashHook(unsigned cpu_index)
+{
+    server.waitForDebuggerAttach(cpu_index);
 }
