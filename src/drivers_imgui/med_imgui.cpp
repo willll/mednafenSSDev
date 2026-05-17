@@ -213,10 +213,10 @@ void _med_imgui_copy_texture(GLuint sourceTexture, GLuint destinationTexture)
 
 // Assuming you have a buffer of logs
 std::vector<std::string> logBuffer;
+std::string logLine;
 
 // Function to add a log to the buffer
 void med_imgui_render_logs_addLog(const unsigned char* log) {
-    static std::string logLine;
     if (*log == '\n') {
         logBuffer.push_back(logLine);
         logLine.clear();
@@ -237,6 +237,11 @@ static void _med_imgui_render_logs()
         // Display the entire log buffer
         for (const auto& log : logBuffer) {
             ImGui::Text("%s", log.c_str());
+        }
+        
+        // Display any incomplete line instantly
+        if (!logLine.empty()) {
+            ImGui::Text("%s", logLine.c_str());
         }
 
         // Optionally, you might want to scroll to the bottom when new logs are added
