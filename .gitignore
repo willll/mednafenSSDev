@@ -64,3 +64,4 @@ conftest.cpp
 conftest.err
 
 build*/
+build_log.txt
