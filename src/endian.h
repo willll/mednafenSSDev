@@ -22,6 +22,8 @@
 #ifndef __MDFN_ENDIAN_H
 #define __MDFN_ENDIAN_H
 
+#include <cstring>
+
 namespace Mednafen
 {
 

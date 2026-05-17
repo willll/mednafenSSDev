@@ -26,6 +26,8 @@
 #include <trio/trio.h>
 
 #include "general.h"
+#include <cstring>
+#include <cstdio>
 #include <mednafen/string/string.h>
 #include <mednafen/hash/md5.h>
 #include "mempatcher.h"
