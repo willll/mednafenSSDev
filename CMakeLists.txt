@@ -589,3 +589,23 @@ set(MEDNAFEN_VERSION_NUMERIC 0x00103201)
 set(VERSION "\"1.32.1\"")
 
 configure_file("cmake/cmake.config.h.in" "${CMAKE_BINARY_DIR}/config.h")
+
+# Visual Studio build support
+if (CMAKE_GENERATOR MATCHES "Visual Studio")
+    message(STATUS "Configuring for Visual Studio build...")
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/vsbin)
+    # Optionally, set flags or definitions specific to MSVC here
+    add_compile_definitions("_CRT_SECURE_NO_WARNINGS")
+    # You may want to adjust warning levels, etc.
+endif()
+
+# Optionally, add a preset for Visual Studio in CMakePresets.json:
+# {
+#   "name": "vs2022",
+#   "generator": "Visual Studio 17 2022",
+#   "description": "Build with Visual Studio 2022",
+#   "hidden": false,
+#   "cacheVariables": {
+#     "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+#   }
+# }
