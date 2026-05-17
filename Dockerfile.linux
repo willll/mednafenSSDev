@@ -1,0 +1,20 @@
+# Base image is the existing cross-compile builder which has CMake and other base tools
+FROM registry.gitlab.com/ced2911/mednafen-saturn-dev:latest
+
+# Install dependencies for native Linux compilation
+RUN apt-get update && \
+    apt-get install -y \
+    libsdl2-dev \
+    libflac-dev \
+    libasound2-dev \
+    zlib1g-dev \
+    libgl1-mesa-dev \
+    pkg-config \
+    binutils-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Default workdir
+WORKDIR /workspace
+
+# Default command
+CMD ["bash"]
