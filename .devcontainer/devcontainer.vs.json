@@ -1,0 +1,13 @@
+{
+  "name": "Visual Studio Build Container",
+  "build": {
+    "dockerfile": "Dockerfile.vs"
+  },
+  "workspaceFolder": "/workspace",
+  "settings": {},
+  "extensions": [
+    "ms-vscode.cmake-tools",
+    "ms-vscode.cpptools"
+  ],
+  "remoteUser": "ContainerAdministrator"
+}
