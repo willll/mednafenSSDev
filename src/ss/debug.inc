@@ -854,12 +854,15 @@ static MDFN_COLD void DBG_DumpCrashState(unsigned which)
    LogFunc("SH2-CRASH", "===== CRASH DUMP END =====");
 }
 
-static MDFN_COLD void DBG_DumpCrashStatePair(unsigned primary_which)
-{
- DBG_DumpCrashState(primary_which);
+// Weak hook for debugger attach on crash
+__attribute__((weak)) void MDFN_DebuggerCrashHook(unsigned cpu_index) {}
 
- if(primary_which < 2)
-   DBG_DumpCrashState(primary_which ^ 1);
+static void DBG_DumpCrashStatePair(unsigned primary_which)
+{
+    DBG_DumpCrashState(primary_which);
+    DBG_DumpCrashState(primary_which ^ 1);
+    // Hook: allow external debugger attach (e.g., GDB server)
+    MDFN_DebuggerCrashHook(primary_which);
 }
 
 static MDFN_COLD void DBG_SetLogFunc(void (*lf)(const char* type, const char* text))
@@ -1481,7 +1484,13 @@ template<unsigned which> static INLINE void DBG_CPUHandler(void) { }
 static INLINE void DBG_AddBranchTrace(unsigned which, uint32 to, int exception, unsigned vecnum = 0) { }
 static INLINE void DBG_DumpBranchTrace(unsigned which, unsigned max_entries) { }
 static INLINE void DBG_DumpCrashState(unsigned which) { }
-static INLINE void DBG_DumpCrashStatePair(unsigned primary_which) { }
+static INLINE void DBG_DumpCrashStatePair(unsigned primary_which)
+{
+    DBG_DumpCrashState(primary_which);
+    DBG_DumpCrashState(primary_which ^ 1);
+    // Hook: allow external debugger attach (e.g., GDB server)
+    MDFN_DebuggerCrashHook(primary_which);
+}
 static INLINE bool DBG_NeedCPUHooks(void) { return false; } 
 static INLINE void DBG_Init(void) { }
 static INLINE void DBG_Kill(void) { }
