@@ -18,6 +18,13 @@
 #include "profiler.h"
 #include "elf_parser.h"
 
+#include <mednafen/FileStream.h>
+
+#include <algorithm>
+#include <cctype>
+#include <cerrno>
+#include <cstdlib>
+
 GLuint fb_tex_id;
 
 //==============
@@ -230,9 +237,19 @@ static void _med_imgui_render_logs()
 {
     // Simple console window with logs
     static bool show_logs = true;
+    static bool auto_follow = true;
+    static size_t prev_log_count = 0;
+    static size_t prev_partial_len = 0;
+
     if (show_logs) {
         ImGui::Begin("Logs", &show_logs);
+        ImGui::Checkbox("Auto-follow", &auto_follow);
         ImGui::BeginChild("LogsChild");
+
+        // Only keep following output when the user is already at the bottom.
+        const float scroll_max_before = ImGui::GetScrollMaxY();
+        const bool was_at_bottom = (scroll_max_before <= 0.0f) || (ImGui::GetScrollY() >= (scroll_max_before - 1.0f));
+        const bool has_new_content = (logBuffer.size() != prev_log_count) || (logLine.size() != prev_partial_len);
 
         // Display the entire log buffer
         for (const auto& log : logBuffer) {
@@ -244,8 +261,12 @@ static void _med_imgui_render_logs()
             ImGui::Text("%s", logLine.c_str());
         }
 
-        // Optionally, you might want to scroll to the bottom when new logs are added
-        ImGui::SetScrollHereY(1.0f);
+        if (auto_follow && has_new_content && was_at_bottom) {
+            ImGui::SetScrollHereY(1.0f);
+        }
+
+        prev_log_count = logBuffer.size();
+        prev_partial_len = logLine.size();
         ImGui::EndChild();
         ImGui::End();
     }
@@ -317,6 +338,238 @@ static void _med_imgui_render_profiler_item(uint32_t adr, uint64_t cycles_count,
 
     ImGui::TableNextColumn();
     ImGui::Text("%" PRIu64, call_count);
+}
+
+static bool _med_parse_hex_address(const char* text, uint64& out)
+{
+    if (!text)
+        return false;
+
+    while (*text && std::isspace(static_cast<unsigned char>(*text)))
+        text++;
+
+    if (!*text)
+        return false;
+
+    errno = 0;
+    char* end = nullptr;
+    unsigned long long v = std::strtoull(text, &end, 16);
+    if (errno != 0 || end == text)
+        return false;
+
+    while (*end)
+    {
+        if (!std::isspace(static_cast<unsigned char>(*end)))
+            return false;
+        end++;
+    }
+
+    out = static_cast<uint64>(v);
+    return true;
+}
+
+static bool _med_parse_hex_bytes(const char* text, std::vector<uint8>& out)
+{
+    out.clear();
+    if (!text)
+        return false;
+
+    int nib_count = 0;
+    uint8 cur = 0;
+
+    for (const char* p = text; *p; p++)
+    {
+        const unsigned char ch = static_cast<unsigned char>(*p);
+        if (std::isspace(ch))
+            continue;
+
+        int val = -1;
+        if (ch >= '0' && ch <= '9')
+            val = ch - '0';
+        else if (ch >= 'a' && ch <= 'f')
+            val = ch - 'a' + 10;
+        else if (ch >= 'A' && ch <= 'F')
+            val = ch - 'A' + 10;
+        else
+            return false;
+
+        if ((nib_count & 1) == 0)
+            cur = static_cast<uint8>(val << 4);
+        else
+            out.push_back(static_cast<uint8>(cur | val));
+
+        nib_count++;
+    }
+
+    return (nib_count > 0) && ((nib_count & 1) == 0);
+}
+
+static void _med_imgui_render_memory()
+{
+    static int selected_aspace = 0;
+    static uint64 base_addr = 0;
+    static int rows = 32;
+    static char goto_buf[64] = "0";
+    static char search_buf[256] = "";
+    static char save_path[256] = "/tmp/mednafen_memdump.bin";
+    static int save_size = 0x1000;
+    static std::string status;
+
+    if (!CurGame || !CurGame->Debugger || !CurGame->Debugger->AddressSpaces || CurGame->Debugger->AddressSpaces->empty())
+    {
+        ImGui::TextDisabled("No debugger memory address space available.");
+        return;
+    }
+
+    auto& aspaces = *CurGame->Debugger->AddressSpaces;
+    if (selected_aspace < 0)
+        selected_aspace = 0;
+    if (selected_aspace >= static_cast<int>(aspaces.size()))
+        selected_aspace = static_cast<int>(aspaces.size()) - 1;
+
+    const AddressSpaceType& aspace = aspaces[selected_aspace];
+    const uint64 mem_size = std::max<uint64>(1, aspace.size);
+
+    if (base_addr >= mem_size)
+        base_addr %= mem_size;
+
+    ImGui::Text("Address space size: 0x%llX", static_cast<unsigned long long>(mem_size));
+    if (ImGui::BeginCombo("Address Space", aspace.long_name.c_str()))
+    {
+        for (int i = 0; i < static_cast<int>(aspaces.size()); i++)
+        {
+            const bool is_selected = (i == selected_aspace);
+            if (ImGui::Selectable(aspaces[i].long_name.c_str(), is_selected))
+            {
+                selected_aspace = i;
+                base_addr = 0;
+            }
+            if (is_selected)
+                ImGui::SetItemDefaultFocus();
+        }
+        ImGui::EndCombo();
+    }
+
+    ImGui::InputText("Go To (hex)", goto_buf, sizeof(goto_buf));
+    ImGui::SameLine();
+    if (ImGui::Button("Go"))
+    {
+        uint64 addr = 0;
+        if (_med_parse_hex_address(goto_buf, addr))
+        {
+            base_addr = addr % mem_size;
+            status = "Moved to address.";
+        }
+        else
+            status = "Invalid Go To address.";
+    }
+
+    ImGui::InputText("Search (hex bytes)", search_buf, sizeof(search_buf));
+    ImGui::SameLine();
+    if (ImGui::Button("Search"))
+    {
+        std::vector<uint8> needle;
+        if (!_med_parse_hex_bytes(search_buf, needle))
+        {
+            status = "Invalid search bytes. Use hex pairs, ex: DE AD BE EF";
+        }
+        else if (needle.size() > mem_size)
+        {
+            status = "Search pattern is larger than selected address space.";
+        }
+        else
+        {
+            std::vector<uint8> buf(needle.size());
+            uint64 a = (base_addr + 1) % mem_size;
+            const uint64 start = a;
+            bool found = false;
+
+            do
+            {
+                aspace.GetAddressSpaceBytes(aspace.name.c_str(), static_cast<uint32>(a), needle.size(), buf.data());
+                if (std::memcmp(buf.data(), needle.data(), needle.size()) == 0)
+                {
+                    base_addr = a;
+                    found = true;
+                    break;
+                }
+                a = (a + 1) % mem_size;
+            } while (a != start);
+
+            status = found ? "Search match found." : "No match found.";
+        }
+    }
+
+    ImGui::InputText("Save Path", save_path, sizeof(save_path));
+    ImGui::InputInt("Save Size (bytes)", &save_size, 256, 4096);
+    ImGui::SameLine();
+    if (ImGui::Button("Save"))
+    {
+        if (save_size <= 0)
+        {
+            status = "Save size must be > 0.";
+        }
+        else
+        {
+            try
+            {
+                FileStream fp(save_path, FileStream::MODE_WRITE);
+                std::vector<uint8> chunk(256);
+                uint64 written = 0;
+
+                while (written < static_cast<uint64>(save_size))
+                {
+                    const uint64 remaining = static_cast<uint64>(save_size) - written;
+                    const size_t n = static_cast<size_t>(std::min<uint64>(remaining, chunk.size()));
+                    const uint64 a = (base_addr + written) % mem_size;
+
+                    aspace.GetAddressSpaceBytes(aspace.name.c_str(), static_cast<uint32>(a), n, chunk.data());
+                    fp.write(chunk.data(), n);
+                    written += n;
+                }
+
+                fp.close();
+                status = "Memory dump saved.";
+            }
+            catch (std::exception& e)
+            {
+                status = std::string("Save failed: ") + e.what();
+            }
+        }
+    }
+
+    ImGui::Separator();
+    if (!status.empty())
+        ImGui::TextUnformatted(status.c_str());
+
+    rows = std::clamp(rows, 4, 128);
+    ImGui::SliderInt("Rows", &rows, 4, 128);
+
+    ImGui::BeginChild("MemoryView");
+    for (int r = 0; r < rows; r++)
+    {
+        const uint64 row_addr = (base_addr + static_cast<uint64>(r) * 16ULL) % mem_size;
+        uint8 line[16];
+        aspace.GetAddressSpaceBytes(aspace.name.c_str(), static_cast<uint32>(row_addr), 16, line);
+
+        ImGui::Text("%08llX:", static_cast<unsigned long long>(row_addr));
+        ImGui::SameLine();
+
+        char hexbuf[16 * 3 + 1];
+        char asciibuf[16 + 1];
+        for (int i = 0; i < 16; i++)
+        {
+            std::snprintf(&hexbuf[i * 3], 4, "%02X ", line[i]);
+            asciibuf[i] = (line[i] >= 0x20 && line[i] < 0x7F) ? static_cast<char>(line[i]) : '.';
+        }
+        hexbuf[16 * 3] = 0;
+        asciibuf[16] = 0;
+
+        ImGui::TextUnformatted(hexbuf);
+        ImGui::SameLine();
+        ImGui::TextUnformatted(asciibuf);
+    }
+    ImGui::EndChild();
 }
 
 void med_imgui_render_frame(const MDFN_Surface *src_surface, const MDFN_Rect *src_rect, const MDFN_Rect *dest_rect, const MDFN_Rect *original_src_rect, int InterlaceField, int UsingIP, int rotated)
@@ -435,6 +688,12 @@ __attribute__((optimize("O0"))) void med_imgui_render_start()
     if (ImGui::Begin("Profiler"))
     {
         _med_imgui_render_profiler();
+    }
+    ImGui::End();
+
+    if (ImGui::Begin("Memory"))
+    {
+        _med_imgui_render_memory();
     }
     ImGui::End();
 

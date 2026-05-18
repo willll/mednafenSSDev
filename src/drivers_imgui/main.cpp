@@ -1703,6 +1703,10 @@ void PumpWrap(void)
 			// event.window.windowID
 			switch (event.window.event)
 			{
+			case SDL_WINDOWEVENT_CLOSE:
+				NeedExitNow = true;
+				break;
+
 			case SDL_WINDOWEVENT_EXPOSED:
 				Video_Exposed();
 				break;

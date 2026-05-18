@@ -181,6 +181,8 @@ static const MDFNSetting GlobalVideoSettings[] =
 
  //{ "video.window.x", MDFNSF_NOFLAGS, gettext_noop("Window starting X position."), NULL, MDFNST_INT, "0x2FFF0000" },
  //{ "video.window.y", MDFNSF_NOFLAGS, gettext_noop("Window starting Y position."), NULL, MDFNST_INT, "0x2FFF0000" },
+ { "video.window.width", MDFNSF_NOFLAGS, gettext_noop("Window starting width."), gettext_noop("Set to 0 to use automatic sizing based on video settings."), MDFNST_UINT, "0", "0", "16383" },
+ { "video.window.height", MDFNSF_NOFLAGS, gettext_noop("Window starting height."), gettext_noop("Set to 0 to use automatic sizing based on video settings."), MDFNST_UINT, "0", "0", "16383" },
 
  { "video.cursorvis", MDFNSF_NOFLAGS, gettext_noop("Preferred window manager cursor visibility."), gettext_noop("The cursor will still be forcibly hidden in relative mouse mode(used automatically when emulating a mouse input device in fullscreen mode or in windowed mode and input grabbing is toggled on), and forcibly shown in the debugger."), MDFNST_ENUM, "hidden", NULL, NULL, NULL, NULL, CursorVis_List },
 
@@ -502,6 +504,19 @@ void Video_Kill(void)
 
  if(window)
  {
+  if(!(SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN))
+  {
+   int cur_w = 0;
+   int cur_h = 0;
+
+   SDL_GetWindowSize(window, &cur_w, &cur_h);
+   if(cur_w > 0 && cur_h > 0)
+   {
+    MDFNI_SetSetting("video.window.width", std::to_string(cur_w));
+    MDFNI_SetSetting("video.window.height", std::to_string(cur_h));
+   }
+  }
+
   if(SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN)
    SDL_SetWindowFullscreen(window, 0);
   //
@@ -880,15 +895,27 @@ void Video_Sync(MDFNGI *gi)
  GenerateWindowedDestRect();
  screen_w = screen_dest_rect.w;
  screen_h = screen_dest_rect.h;
+
+ if(!video_settings.fullscreen)
+ {
+  uint32 saved_w = MDFN_GetSettingUI("video.window.width");
+  uint32 saved_h = MDFN_GetSettingUI("video.window.height");
+
+  if(saved_w > 0 && saved_h > 0)
+  {
+   screen_w = std::min<uint32>(saved_w, 16383);
+   screen_h = std::min<uint32>(saved_h, 16383);
+  }
+ }
  //
  //
 
- if(screen_dest_rect.w > 16383 || screen_dest_rect.h > 16383)
-  throw MDFN_Error(0, _("Window size(%dx%d) is too large!"), screen_dest_rect.w, screen_dest_rect.h);
+ if(screen_w > 16383 || screen_h > 16383)
+  throw MDFN_Error(0, _("Window size(%dx%d) is too large!"), screen_w, screen_h);
 
  SDL_SetWindowFullscreen(window, 0);
  SDL_PumpEvents();
- SDL_SetWindowSize(window, screen_dest_rect.w, screen_dest_rect.h);
+ SDL_SetWindowSize(window, screen_w, screen_h);
  SDL_PumpEvents();
  SDL_SetWindowPosition(window, winpos_x, winpos_y);
  winpos_applied = true;
@@ -1325,6 +1352,11 @@ med_imgui_init(window, glcontext);
 
 void Video_Init(void)
 {
+ uint32 saved_w = MDFN_GetSettingUI("video.window.width");
+ uint32 saved_h = MDFN_GetSettingUI("video.window.height");
+ int initial_w = (saved_w > 0) ? std::min<uint32>(saved_w, 16383) : 64;
+ int initial_h = (saved_h > 0) ? std::min<uint32>(saved_h, 16383) : 64;
+
  winpos_x = SDL_WINDOWPOS_CENTERED; //MDFN_GetSettingI("video.window.x");
  winpos_y = SDL_WINDOWPOS_CENTERED; //MDFN_GetSettingI("video.window.y");
  winpos_applied = false;
@@ -1342,7 +1374,7 @@ void Video_Init(void)
    SDL_WINDOW_HIDDEN | SDL_WINDOW_OPENGL,
    SDL_WINDOW_HIDDEN
   };
-    window = SDL_CreateWindow("Mednafen", winpos_x, winpos_y, 64, 64, try_flags[i] | SDL_WINDOW_RESIZABLE);
+    window = SDL_CreateWindow("Mednafen", winpos_x, winpos_y, initial_w, initial_h, try_flags[i] | SDL_WINDOW_RESIZABLE);
  }
 
  if(!window)
@@ -1895,11 +1927,21 @@ void Video_Exposed(void)
 
 void Video_Resized(void)
 {
+ int window_w = 0;
+ int window_h = 0;
+
  int w, h;
  if(ogl_blitter)
   SDL_GL_GetDrawableSize(window, &w, &h);
  else
   SDL_GetWindowSize(window, &w, &h);
+
+ SDL_GetWindowSize(window, &window_w, &window_h);
+ if(window_w > 0 && window_h > 0 && !(SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN))
+ {
+  MDFNI_SetSetting("video.window.width", std::to_string(window_w));
+  MDFNI_SetSetting("video.window.height", std::to_string(window_h));
+ }
 
  if(w > 0 && h > 0 && (w != screen_w || h != screen_h))
  {
