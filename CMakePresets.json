@@ -14,7 +14,9 @@
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "MDFN_ENABLE_DEV_BUILD": "1",
+        "WANT_DEBUGGER": "1"
       }
     },
     {
@@ -26,7 +28,9 @@
       "toolchainFile": "${sourceDir}/cmake/toolchain-win32-mxe.cmake",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "MDFN_ENABLE_DEV_BUILD": "1",
+        "WANT_DEBUGGER": "1"
       }
     }
   ],
