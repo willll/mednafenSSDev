@@ -599,9 +599,9 @@ set(PACKAGE_TARNAME "")
 set(PACKAGE_URL "")
 set(PACKAGE_VERSION "")
 #
-set(MEDNAFEN_VERSION "\"1.32.1\"")
+set(MEDNAFEN_VERSION "\"1.32.1_saturn\"")
 set(MEDNAFEN_VERSION_NUMERIC 0x00103201)
-set(VERSION "\"1.32.1\"")
+set(VERSION "\"1.32.1_saturn\"")
 
 configure_file("cmake/cmake.config.h.in" "${CMAKE_BINARY_DIR}/config.h")
 
