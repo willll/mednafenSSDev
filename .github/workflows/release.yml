@@ -1,0 +1,123 @@
+name: Release Mednafen
+
+on:
+  push:
+    tags:
+      - '*'
+
+permissions:
+  contents: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            binutils-dev \
+            ccache \
+            libasound2-dev \
+            libflac-dev \
+            libgl1-mesa-dev \
+            libsdl2-dev \
+            pkg-config \
+            zlib1g-dev
+
+      - name: Configure ccache
+        run: |
+          mkdir -p ~/.cache/ccache
+          ccache --set-config=cache_dir=$HOME/.cache/ccache
+          ccache --set-config=max_size=750M
+          ccache --zero-stats
+
+      - name: Configure debug build
+        run: cmake --preset debug -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+
+      - name: Build executable
+        run: cmake --build --preset debug --target mednafen
+
+      - name: Upload executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: mednafen-linux
+          path: build/mednafen
+
+  build-win32:
+    runs-on: ubuntu-latest
+
+    container:
+      image: registry.gitlab.com/ced2911/mednafen-saturn-dev:latest
+
+    steps:
+      - name: Checkout repository (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Create build directory
+        run: |
+          mkdir build
+          cd build
+          export PATH="/opt/mxe-w64/usr/bin/:$PATH"
+          x86_64-w64-mingw32.static-cmake .. -DWINDOWS=1 -DMDFN_ENABLE_DEV_BUILD=1 -DWANT_DEBUGGER=1 -DCMAKE_BUILD_TYPE=Debug
+          make
+          x86_64-w64-mingw32.static-strip mednafen.exe -o ../mednafen.exe
+
+      - name: Upload executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: mednafen.exe
+          path: mednafen.exe
+
+  publish-release:
+    runs-on: ubuntu-latest
+    needs:
+      - build-linux
+      - build-win32
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify tag points to main
+        run: |
+          git fetch origin main --depth=1
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "Tag $GITHUB_REF_NAME does not point to a commit on main."
+            exit 1
+          fi
+
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: mednafen-linux
+          path: dist/linux
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: mednafen.exe
+          path: dist/windows
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Mednafen ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            dist/linux/mednafen
+            dist/windows/mednafen.exe
