@@ -27,8 +27,17 @@
 
 GLuint fb_tex_id;
 
+#if defined(IMGUI_HAS_VIEWPORT)
+#define MDFN_IMGUI_HAS_VIEWPORTS 1
+#else
+#define MDFN_IMGUI_HAS_VIEWPORTS 0
+#endif
+
 //==============
 SDL_Window *window = NULL;
+#if MDFN_IMGUI_HAS_VIEWPORTS
+static SDL_GLContext main_glcontext = NULL;
+#endif
 static int med_init = 0;
 
 static float med_imgui_get_ui_scale()
@@ -69,6 +78,8 @@ static void med_init_textures()
 
 void med_imgui_kill()
 {
+    if (med_init == 0)
+        return;
     ImGui_ImplOpenGL2_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
@@ -574,6 +585,8 @@ static void _med_imgui_render_memory()
 
 void med_imgui_render_frame(const MDFN_Surface *src_surface, const MDFN_Rect *src_rect, const MDFN_Rect *dest_rect, const MDFN_Rect *original_src_rect, int InterlaceField, int UsingIP, int rotated)
 {
+    if (med_init == 0)
+        return;
     MDFN_Rect tex_src_rect = *src_rect;
     float src_coords[4][2];
     int dest_coords[4][2];
@@ -721,6 +734,16 @@ void med_imgui_render_end()
     // glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
 
     ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
+
+#if MDFN_IMGUI_HAS_VIEWPORTS
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+    {
+        ImGui::UpdatePlatformWindows();
+        ImGui::RenderPlatformWindowsDefault();
+        SDL_GL_MakeCurrent(window, main_glcontext);
+    }
+#endif
+
     // glClear(GL_COLOR_BUFFER_BIT);
     // SDL_GL_SwapWindow(window);
 }
@@ -734,7 +757,12 @@ void med_imgui_process_event(SDL_Event *event)
 
 void med_imgui_init(SDL_Window *_window, SDL_GLContext glcontext)
 {
+    if (glcontext == nullptr)
+        return;
     window = _window;
+#if MDFN_IMGUI_HAS_VIEWPORTS
+    main_glcontext = glcontext;
+#endif
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -745,12 +773,23 @@ void med_imgui_init(SDL_Window *_window, SDL_GLContext glcontext)
 #ifdef IMGUI_HAS_DOCK
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Enable Docking
 #endif
+#if MDFN_IMGUI_HAS_VIEWPORTS
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;    // Allow detaching windows into native OS windows
+#endif
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
     {
         ImGuiStyle &style = ImGui::GetStyle();
         ImVec4 *colors = style.Colors;
+
+    #if MDFN_IMGUI_HAS_VIEWPORTS
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+        {
+            style.WindowRounding = 0.0f;
+            colors[ImGuiCol_WindowBg].w = 1.0f;
+        }
+    #endif
 
         colors[ImGuiCol_Text] = ImVec4(0.98f, 0.98f, 0.98f, 1.00f);
         colors[ImGuiCol_TextDisabled] = ImVec4(0.70f, 0.72f, 0.75f, 1.00f);

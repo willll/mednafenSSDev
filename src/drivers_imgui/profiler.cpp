@@ -61,6 +61,7 @@ struct stack_item_t
 static std::stack<stack_item_t> call_stack;
 static std::unordered_map<uint32_t, profile_item_t> profile_stack;
 static std::mutex profiler_mutex; // Add this line
+static uint64_t unbalanced_end_calls = 0;
 
 void DBGProfiler::init()
 {
@@ -106,6 +107,17 @@ void DBGProfiler::start(int cpu_n, uint32_t address)
 __attribute__((optimize("O0"))) void DBGProfiler::end(int cpu_n, uint32_t pc)
 {
     std::lock_guard<std::mutex> lock(profiler_mutex);
+    // Prevent crashes when end() is reached without a matching start().
+    if (call_stack.empty())
+    {
+        unbalanced_end_calls++;
+        if (unbalanced_end_calls <= 8 || ((unbalanced_end_calls & (unbalanced_end_calls - 1)) == 0))
+        {
+            fprintf(stderr, "[DBGProfiler] unbalanced end() call: cpu=%d pc=0x%08x count=%llu\n", cpu_n, pc, (unsigned long long)unbalanced_end_calls);
+        }
+        return;
+    }
+
     stack_item_t stack = call_stack.top();
     uint64_t d = cycles[cpu_n] - stack.cycle_start;
 
